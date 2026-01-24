@@ -1,0 +1,5 @@
+{
+  "name": "FSP Exam Simulator",
+  "description": "An interactive simulator for doctors preparing for the FSP (Fachspracheprüfung) exam. It features an AI patient for anamnesis, an AI examiner for feedback, and an AI assistant for writing official doctor's letters.",
+  "requestFramePermissions": []
+}
