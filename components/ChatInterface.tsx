@@ -16,9 +16,11 @@ interface ChatInterfaceProps {
     userInput: string;
     setUserInput: (value: string) => void;
     simulationMode: SimulationMode;
+    retryableMessage: string | null;
+    onRetry: () => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEvaluating, error, onSendMessage, onEndSimulation, isGuest, isPremium, stage, userInput, setUserInput, simulationMode }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEvaluating, error, onSendMessage, onEndSimulation, isGuest, isPremium, stage, userInput, setUserInput, simulationMode, retryableMessage, onRetry }) => {
     const [pendingMessage, setPendingMessage] = React.useState<string | null>(null);
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
     const SEND_DELAY = 5000;
@@ -112,7 +114,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEv
         recognitionRef.current = recognition;
     };
     
-    const isUIBlocked = isLoading || isEvaluating || !!pendingMessage || isListening;
+    const isUIBlocked = isLoading || isEvaluating || !!pendingMessage || isListening || !!retryableMessage;
 
     const getButtonClass = () => {
         if (stage === 'anamnesis') {
@@ -173,8 +175,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEv
             </div>
 
             {error && (
-                <div className="p-4 bg-red-900/50 text-red-300 border-t border-red-800 text-sm">
-                    <strong>Hata:</strong> {error}
+                <div className="p-4 bg-red-900/50 text-red-300 border-t border-red-800 text-sm flex justify-between items-center">
+                    <span>{error}</span>
+                     {retryableMessage && (
+                        <button 
+                            onClick={onRetry}
+                            className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-md transition-colors text-xs ml-4"
+                        >
+                            Yeniden Dene
+                        </button>
+                    )}
                 </div>
             )}
 

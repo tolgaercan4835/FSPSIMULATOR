@@ -28,6 +28,8 @@ interface SimulationViewProps {
     onStartSimulation: (mode: SimulationMode) => void;
     simulationMode: SimulationMode | null;
     selectedCaseId: number;
+    retryableMessage: string | null;
+    onRetry: () => void;
 }
 
 const AudioSettings: React.FC<{ isEnabled: boolean, onToggle: () => void }> = ({ isEnabled, onToggle }) => (
@@ -134,6 +136,8 @@ const SimulationView: React.FC<SimulationViewProps> = (props) => {
                 userInput={userInput}
                 setUserInput={setUserInput}
                 simulationMode={props.simulationMode!}
+                retryableMessage={props.retryableMessage}
+                onRetry={props.onRetry}
             />
         </>
     );
@@ -204,6 +208,8 @@ const SimulationView: React.FC<SimulationViewProps> = (props) => {
                 userInput={userInput}
                 setUserInput={setUserInput}
                 simulationMode={props.simulationMode!}
+                retryableMessage={props.retryableMessage}
+                onRetry={props.onRetry}
             />
         </>
     );

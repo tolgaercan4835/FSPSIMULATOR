@@ -27,7 +27,8 @@ const App: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isEvaluating, setIsEvaluating] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const chatRef = useRef<Chat | null>(null);
+    const [systemInstruction, setSystemInstruction] = useState<string>('');
+    const [retryableMessage, setRetryableMessage] = useState<string | null>(null);
 
     const [selectedCaseId, setSelectedCaseId] = useState<number>(cases[0].id);
     const [selectedFlashcardCategory, setSelectedFlashcardCategory] = useState<string>('Tümü');
@@ -188,7 +189,7 @@ const App: React.FC = () => {
         setArztbriefText('');
         setCurrentStage('anamnesis');
         setError(null);
-        chatRef.current = null;
+        setRetryableMessage(null);
         setSimulationMode(null);
         setCurrentView(view);
     };
@@ -200,23 +201,16 @@ const App: React.FC = () => {
 
         setIsLoading(true);
         setError(null);
+        setRetryableMessage(null);
         setChatHistory([]);
         
-        try {
-            const chat = ai.chats.create({
-                model: 'gemini-3-flash-preview',
-                config: {
-                    systemInstruction: createSystemInstruction(selectedCase, profileForSim, mode),
-                },
-            });
-            chatRef.current = chat;
-            const initialMessage = createInitialMessage(selectedCase, profileForSim);
-            setChatHistory([initialMessage]);
-        } catch (e: any) {
-            setError(`Simülasyon başlatılamadı: ${e.message}`);
-        } finally {
-            setIsLoading(false);
-        }
+        const instruction = createSystemInstruction(selectedCase, profileForSim, mode);
+        setSystemInstruction(instruction);
+
+        const initialMessage = createInitialMessage(selectedCase, profileForSim);
+        setChatHistory([initialMessage]);
+        setIsLoading(false);
+        
     }, [ai, selectedCase, userProfile, isGuest]);
 
     const handleStartSimulation = useCallback((mode: SimulationMode) => {
@@ -237,7 +231,7 @@ const App: React.FC = () => {
             setAnamnesisHistory([]);
             setArztbriefText('');
             setError(null);
-            chatRef.current = null;
+            setRetryableMessage(null);
         }
     }, [currentView, selectedCaseId]);
 
@@ -248,18 +242,20 @@ const App: React.FC = () => {
         
         setIsLoading(true);
         setError(null);
+        setRetryableMessage(null);
         setChatHistory([]);
 
+        const instruction = createPresentationSystemInstruction(selectedCase, profileForSim, report);
+        setSystemInstruction(instruction);
+
         try {
-            const chat = ai.chats.create({
+            const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
+                contents: [{role: 'user', parts: [{text: "Başla"}]}],
                 config: {
-                    systemInstruction: createPresentationSystemInstruction(selectedCase, profileForSim, report),
+                    systemInstruction: instruction,
                 },
             });
-            chatRef.current = chat;
-            
-            const response = await chat.sendMessage({ message: "Başla" });
             const initialMessage: ChatMessage = { role: 'model', content: response.text ?? 'Lütfen vakayı sunun.' };
             setChatHistory([initialMessage]);
 
@@ -272,39 +268,71 @@ const App: React.FC = () => {
 
 
     const sendMessage = useCallback(async (message: string) => {
-        if (!chatRef.current || isLoading || isEvaluating) return;
-
+        if (!ai || isLoading || isEvaluating) return;
+    
         const userMessage: ChatMessage = { role: 'user', content: message };
-        setChatHistory(prev => [...prev, userMessage]);
+        const historyWithUserMessage = [...chatHistory, userMessage];
+        setChatHistory(historyWithUserMessage);
+    
         setIsLoading(true);
         setError(null);
-
+        setRetryableMessage(null);
+        
+        const historyToPass = historyWithUserMessage.slice(-11);
+        const mappedContents = historyToPass.map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }]
+        }));
+    
         try {
-            const stream = await chatRef.current.sendMessageStream({ message });
+            const stream = await ai.models.generateContentStream({
+                model: 'gemini-3-flash-preview',
+                contents: mappedContents,
+                config: {
+                    systemInstruction: systemInstruction,
+                }
+            });
+    
             let modelResponse = '';
             setChatHistory(prev => [...prev, { role: 'model', content: '' }]);
-
+    
             for await (const chunk of stream) {
                 const c = chunk as GenerateContentResponse;
                 modelResponse += c.text;
-                 setChatHistory(prev => {
+                setChatHistory(prev => {
                     const newHistory = [...prev];
-                    newHistory[newHistory.length - 1].content = modelResponse;
+                    if (newHistory.length > 0 && newHistory[newHistory.length - 1].role === 'model') {
+                        newHistory[newHistory.length - 1].content = modelResponse;
+                    }
                     return newHistory;
                 });
             }
         } catch (e: any) {
-            setError(`Mesaj gönderilemedi: ${e.message}`);
-            setChatHistory(prev => prev.slice(0, -2));
+            const errorMessage = e.message || 'Bilinmeyen bir hata oluştu.';
+            const isOverloaded = errorMessage.includes('503') || errorMessage.toLowerCase().includes('overloaded');
+            
+            if (isOverloaded) {
+                setError("⚠️ Sunucu yoğunluğu nedeniyle cevap gecikiyor. Lütfen 'Yeniden Dene' butonuna basınız.");
+                setRetryableMessage(message);
+            } else {
+                setError(`Mesaj gönderilemedi: ${errorMessage}`);
+            }
+            
+            setChatHistory(prev => prev.slice(0, -1));
         } finally {
             setIsLoading(false);
         }
-    }, [chatRef, isLoading, isEvaluating]);
+    }, [ai, isLoading, isEvaluating, chatHistory, systemInstruction]);
+    
+    const handleRetry = useCallback(() => {
+        if (retryableMessage) {
+            sendMessage(retryableMessage);
+        }
+    }, [retryableMessage, sendMessage]);
     
     const handleFinishAnamnesis = () => {
         setAnamnesisHistory(chatHistory);
         setChatHistory([]);
-        chatRef.current = null;
         setCurrentStage('documentation');
     };
     
@@ -425,6 +453,8 @@ const App: React.FC = () => {
                     anamnesisHistory={anamnesisHistory}
                     onStartSimulation={handleStartSimulation}
                     simulationMode={simulationMode}
+                    retryableMessage={retryableMessage}
+                    onRetry={handleRetry}
                 />;
                 break;
             case 'progress':
