@@ -73,9 +73,12 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onConfirm 
                     </div>
                    
                     <div className="bg-gray-900/50 p-4 rounded-lg text-center my-6 border border-gray-700">
-                        <p className="text-gray-300">Tek Seferlik Ödeme</p>
-                        <p className="text-4xl font-extrabold text-white my-1">$5.99</p>
-                        <p className="text-sm text-gray-400">Gizli ücret yok, ömür boyu erişim.</p>
+                        <p className="font-semibold text-yellow-400">Lansmana Özel Fiyat</p>
+                        <div className="my-2 flex items-baseline justify-center gap-2">
+                            <span className="text-4xl font-extrabold text-white">399 ₺</span>
+                            <span className="text-xl text-gray-500 line-through">1.299 ₺</span>
+                        </div>
+                        <p className="text-sm text-gray-400">Tek seferlik ödeme, ömür boyu erişim.</p>
                     </div>
 
                     <button 

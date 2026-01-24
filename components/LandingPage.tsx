@@ -117,29 +117,72 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginSuccess, onEnterGuestM
 
             <section className="py-20 bg-gray-800/50">
                 <div className="container mx-auto px-6 text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Sınavın Her Aşamasına Hazır Olun</h2>
-                    <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-12">FSP Simülatörü, sınavın 3 temel bölümü için size özel pratik imkanı sunar.</p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                         {/* Feature 1 */}
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Sınava Hazırlanmak Hiç Bu Kadar Kolay Olmamıştı</h2>
+                    <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-12">Sadece 3 basit adımda FSP pratiğine başlayın.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
                         <div className="bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
-                             <h3 className="text-xl font-bold text-sky-400 mb-2">Anamnez Görüşmesi</h3>
-                             <p className="text-gray-400">Yapay zeka ile gerçekçi hasta diyalogları kurun.</p>
+                             <div className="flex items-center mb-4">
+                                <span className="text-3xl font-bold text-sky-400 mr-4">1.</span>
+                                <h3 className="text-xl font-bold text-gray-100">Vakanı Seç</h3>
+                             </div>
+                             <p className="text-gray-400">Dahiliye, Cerrahi veya Nöroloji... 90+ vaka arasından istediğini seç veya rastgele modda kendini test et.</p>
                         </div>
-                        {/* Feature 2 */}
                         <div className="bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
-                            <h3 className="text-xl font-bold text-sky-400 mb-2">Arztbrief Yazımı</h3>
-                            <p className="text-gray-400">Topladığınız bilgileri resmi doktor mektubuna dönüştürün.</p>
+                             <div className="flex items-center mb-4">
+                                <span className="text-3xl font-bold text-sky-400 mr-4">2.</span>
+                                <h3 className="text-xl font-bold text-gray-100">Simülasyonu Başlat</h3>
+                             </div>
+                             <p className="text-gray-400">Mikrofonunu kullanarak yapay zeka hastanla gerçekçi bir anamnez görüşmesi yap ve tanı koy.</p>
                         </div>
-                        {/* Feature 3 */}
                         <div className="bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-700">
-                            <h3 className="text-xl font-bold text-sky-400 mb-2">Vaka Sunumu</h3>
-                            <p className="text-gray-400">Kıdemli doktora vakanızı sunun ve soruları yanıtlayın.</p>
+                             <div className="flex items-center mb-4">
+                                <span className="text-3xl font-bold text-sky-400 mr-4">3.</span>
+                                <h3 className="text-xl font-bold text-gray-100">Analizini Gör</h3>
+                             </div>
+                            <p className="text-gray-400">Sınav sonunda gramer, tıbbi bilgi ve iletişim becerilerini ölçen detaylı karneni al.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section className="py-20">
+             <section className="py-20">
+                <div className="container mx-auto px-6 text-center">
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Neden FSP Simülatörü?</h2>
+                    <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-12">Piyasadaki diğer çözümlerden farkımız.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
+                        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-start gap-4">
+                            <span className="text-3xl mt-1">🤖</span>
+                            <div>
+                                <h3 className="text-xl font-bold text-sky-400 mb-2">Sonsuz Vaka & Senaryo</h3>
+                                <p className="text-gray-400">Ezberlenmiş 20 vaka yok. Yapay zeka sayesinde her görüşme, hastanın farklı tepkileriyle benzersizdir.</p>
+                            </div>
+                        </div>
+                        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-start gap-4">
+                            <span className="text-3xl mt-1">🎙️</span>
+                            <div>
+                                <h3 className="text-xl font-bold text-sky-400 mb-2">Sesli İletişimle Pratik</h3>
+                                <p className="text-gray-400">Sadece yazışarak değil, konuşarak pratik yapın. Gerçek sınavdaki gibi telaffuz ve akıcılığınızı geliştirin.</p>
+                            </div>
+                        </div>
+                        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-start gap-4">
+                            <span className="text-3xl mt-1">📉</span>
+                             <div>
+                                <h3 className="text-xl font-bold text-sky-400 mb-2">Ekonomik ve Ömür Boyu Erişim</h3>
+                                <p className="text-gray-400">Aylık 89€'luk kurslar yerine, tek seferlik <strong>399₺</strong> ödeyin ve tüm güncellemelere ömür boyu sahip olun.</p>
+                            </div>
+                        </div>
+                         <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-start gap-4">
+                            <span className="text-3xl mt-1">🎓</span>
+                            <div>
+                                <h3 className="text-xl font-bold text-sky-400 mb-2">Gerçekçi Sınav Modu</h3>
+                                <p className="text-gray-400">Gerçek sınav stresi, 20 dakikalık süre kısıtlaması ve zorlayıcı kıdemli doktor sorularıyla kendinizi test edin.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="py-20 bg-gray-800/50">
                 <div className="container mx-auto px-6 text-center">
                     <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Tüm Özelliklere Ömür Boyu Erişin</h2>
                     <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-12">Tek seferlik ödeme ile tüm vakalara, özelliklere ve gelecekteki güncellemelere sahip olun.</p>
