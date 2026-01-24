@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import type { ChatMessage } from '../types';
+import type { ChatMessage, Stage } from '../types';
 import Message from './Message';
 import PendingMessage from './PendingMessage';
 
@@ -13,9 +12,10 @@ interface ChatInterfaceProps {
     onEndSimulation: () => void;
     isGuest?: boolean;
     isPremium?: boolean;
+    stage: Stage;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEvaluating, error, onSendMessage, onEndSimulation, isGuest, isPremium }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEvaluating, error, onSendMessage, onEndSimulation, isGuest, isPremium, stage }) => {
     const [userInput, setUserInput] = useState('');
     const [pendingMessage, setPendingMessage] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -64,6 +64,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEv
     const isUIBlocked = isLoading || isEvaluating || !!pendingMessage;
 
     const getButtonClass = () => {
+        if (stage === 'anamnesis') {
+            return 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-500 focus:ring-blue-500';
+        }
+        // Presentation Stage Button Styles
         if (isGuest) {
             return 'bg-yellow-500 text-gray-900 hover:bg-yellow-400 disabled:bg-yellow-300 focus:ring-yellow-500';
         }
@@ -74,6 +78,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEv
     };
 
     const getButtonText = () => {
+        if (stage === 'anamnesis') {
+            return 'Anamnezi Bitir ve Raporu Yaz';
+        }
+
+        // Presentation Stage Text
         if (isGuest) return 'Giriş Yap ve Değerlendir';
         if (!isPremium) return 'Premium ile Değerlendir';
         if (isEvaluating) return (
@@ -85,7 +94,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEv
                 Değerlendiriliyor...
             </>
         );
-        return 'Simülasyonu Bitir ve Değerlendir';
+        return 'Sınavı Bitir ve Değerlendir';
     };
 
 
@@ -129,7 +138,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEv
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        placeholder="Mesajınızı Almanca yazın..."
+                        placeholder={stage === 'anamnesis' ? 'Hastaya sorunuzu Almanca yazın...' : 'Cevabınızı Almanca yazın...'}
                         className="flex-1 bg-transparent border-none focus:ring-0 resize-none p-2 text-gray-200 placeholder-gray-400"
                         rows={1}
                         disabled={isUIBlocked}

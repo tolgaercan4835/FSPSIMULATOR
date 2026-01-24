@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 interface FeedbackModalProps {
@@ -38,7 +37,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 <header className="flex justify-between items-center p-4 border-b border-gray-700">
-                    <h2 id="feedback-title" className="text-xl font-bold text-gray-100">Geri Bildirim / Hata Bildir</h2>
+                    <h2 id="feedback-title" className="text-xl font-bold text-gray-100 tracking-tight">Geri Bildirim / Hata Bildir</h2>
                     <button 
                         onClick={handleClose} 
                         className="text-gray-400 hover:text-white transition-colors"

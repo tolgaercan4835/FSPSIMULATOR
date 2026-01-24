@@ -1,4 +1,3 @@
-
 export interface ChatMessage {
     role: 'user' | 'model';
     content: string;
@@ -34,8 +33,11 @@ export interface EvaluationRecord {
 }
 
 export interface UserProfile {
+    email: string;
     firstName: string;
     lastName: string;
     avatarId: string;
     gender: 'male' | 'female';
 }
+
+export type Stage = 'anamnesis' | 'documentation' | 'presentation';

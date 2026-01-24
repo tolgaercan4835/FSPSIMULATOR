@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { googleLogout } from '@react-oauth/google';
@@ -13,15 +12,16 @@ import FeedbackModal from './components/FeedbackModal';
 import LoginView from './components/LoginView';
 import LoginRequiredModal from './components/LoginRequiredModal';
 import Navbar from './components/Navbar';
-import type { ChatMessage, Case, EvaluationRecord, UserProfile } from './types';
-import { createSystemInstruction, createInitialMessage, TERMINOLOGY_LIST } from './constants';
+import { supabase } from './lib/supabase';
+import type { ChatMessage, Case, EvaluationRecord, UserProfile, Term, Stage } from './types';
+import { createSystemInstruction, createInitialMessage, TERMINOLOGY_LIST, createPremiumEvaluationPrompt, createFreeEvaluationPrompt, createPresentationSystemInstruction } from './constants';
 import { cases } from './data/cases';
 
 const App: React.FC = () => {
     const [apiKey] = useState(process.env.API_KEY || "");
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [isGuest, setIsGuest] = useState<boolean>(false);
-    const [partialGoogleProfile, setPartialGoogleProfile] = useState<{ firstName: string, lastName: string } | null>(null);
+    const [partialGoogleProfile, setPartialGoogleProfile] = useState<Partial<UserProfile> | null>(null);
     const [currentView, setCurrentView] = useState<'dashboard' | 'simulation' | 'progress' | 'study'>('dashboard');
     const [isLoading, setIsLoading] = useState(false);
     const [isEvaluating, setIsEvaluating] = useState(false);
@@ -30,6 +30,12 @@ const App: React.FC = () => {
 
     const [selectedCaseId, setSelectedCaseId] = useState<number>(cases[0].id);
     const [selectedFlashcardCategory, setSelectedFlashcardCategory] = useState<string>('Tümü');
+    
+    // Simulation Stage Management
+    const [currentStage, setCurrentStage] = useState<Stage>('anamnesis');
+    const [anamnesisHistory, setAnamnesisHistory] = useState<ChatMessage[]>([]);
+    const [arztbriefText, setArztbriefText] = useState<string>('');
+
 
     const selectedCase = useMemo(() => cases.find(c => c.id === selectedCaseId)!, [selectedCaseId]);
 
@@ -44,7 +50,12 @@ const App: React.FC = () => {
     const [isPremiumModalOpen, setIsPremiumModalOpen] = useState<boolean>(false);
     const [isLoginRequiredModalOpen, setIsLoginRequiredModalOpen] = useState<boolean>(false);
     const [isEditingProfile, setIsEditingProfile] = useState<boolean>(false);
-    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState<boolean>(false);
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+    
+    // Terminology state
+    const [terminologyList, setTerminologyList] = useState<Term[]>(TERMINOLOGY_LIST);
+    const [isGeneratingCards, setIsGeneratingCards] = useState(false);
+
 
      useEffect(() => {
         try {
@@ -54,9 +65,6 @@ const App: React.FC = () => {
                 setIsGuest(false);
             }
 
-            const storedPremium = localStorage.getItem('fspSimulatorPremium');
-            if (storedPremium) setIsPremium(JSON.parse(storedPremium));
-
             const storedHistory = localStorage.getItem('fspSimulatorHistory');
             if (storedHistory) setEvaluationHistory(JSON.parse(storedHistory));
 
@@ -64,17 +72,90 @@ const App: React.FC = () => {
             console.error("Failed to load state from localStorage", e);
         }
     }, []);
+    
+    // Check premium status against Supabase when user profile is available
+    useEffect(() => {
+        const checkPremiumStatus = async () => {
+            if (!supabase || !userProfile || !userProfile.email) {
+                setIsPremium(false); // Default to non-premium in preview mode or if logged out
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('premium_users')
+                .select('email')
+                .eq('email', userProfile.email)
+                .single();
+
+            if (error && error.code !== 'PGRST116') { // PGRST116 = "Query returned no rows" which is not an error for us
+                console.error('Error checking premium status:', error);
+            }
+
+            const isUserPremium = !!data;
+            setIsPremium(isUserPremium);
+            localStorage.setItem('fspSimulatorPremium', JSON.stringify(isUserPremium));
+        };
+
+        checkPremiumStatus();
+    }, [userProfile]);
+
 
     const ai = useMemo(() => {
         if (!apiKey) return null;
         return new GoogleGenAI({ apiKey });
     }, [apiKey]);
 
-    const handleLoginSuccess = (googleUser: { given_name: string; family_name: string }) => {
+    const handleGenerateNewCards = useCallback(async () => {
+        if (!ai || !isPremium || isGeneratingCards) return;
+
+        setIsGeneratingCards(true);
+        setError(null);
+
+        const prompt = 'FSP sınavı için Almanca tıbbi terminoloji uzmanısın. Daha önce listede olmayan, C1 seviyesinde, sınav için kullanışlı 5 yeni tıbbi terim üret. Çıktı, başka hiçbir açıklama veya markdown formatı olmadan, SADECE geçerli bir JSON array dizesi olmalıdır. Her nesnenin JSON yapısı şu şekilde olmalıdır: { "latin": "...", "german_common": "...", "german_medical": "...", "english": "...", "turkish": "...", "category": "AI Üretimi" }';
+
+        try {
+            const response = await ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                }
+            });
+
+            const jsonString = response.text;
+            // The AI might return a string that is not a valid JSON array, so we need to be careful.
+            const newCards: Omit<Term, 'id'>[] = JSON.parse(jsonString);
+
+            if (Array.isArray(newCards)) {
+                const formattedNewCards: Term[] = newCards.map((card, index) => ({
+                    ...card,
+                    // Start IDs from a higher number to avoid collision with existing static cards
+                    id: terminologyList.length + index + 501, 
+                }));
+                setTerminologyList(prev => [...prev, ...formattedNewCards]);
+            } else {
+                throw new Error("Yapay zeka geçerli bir dizi formatında yanıt vermedi.");
+            }
+
+        } catch (e: any) {
+            const errorMessage = `Yeni kartlar üretilemedi: ${e.message}`;
+            setError(errorMessage);
+            console.error(errorMessage, e);
+        } finally {
+            setIsGeneratingCards(false);
+        }
+    }, [ai, isPremium, isGeneratingCards, terminologyList.length]);
+
+    const handleLoginSuccess = (googleUser: { given_name: string; family_name: string; email: string }) => {
+        if (!supabase) {
+            alert('Önizleme modunda giriş yapılamaz.');
+            return;
+        }
         setIsGuest(false);
         setPartialGoogleProfile({
             firstName: googleUser.given_name,
-            lastName: googleUser.family_name
+            lastName: googleUser.family_name,
+            email: googleUser.email
         });
     };
     
@@ -87,7 +168,9 @@ const App: React.FC = () => {
         googleLogout();
         setUserProfile(null);
         setIsGuest(false);
+        setIsPremium(false);
         localStorage.removeItem('fspSimulatorProfile');
+        localStorage.removeItem('fspSimulatorPremium');
         navigateTo('dashboard');
     };
 
@@ -100,18 +183,20 @@ const App: React.FC = () => {
     };
     
     const navigateTo = (view: 'dashboard' | 'simulation' | 'progress' | 'study') => {
-        if (view !== 'simulation') {
-            setChatHistory([]);
-            setError(null);
-            chatRef.current = null;
-        }
+        // Reset simulation state when navigating away or to a new simulation
+        setChatHistory([]);
+        setAnamnesisHistory([]);
+        setArztbriefText('');
+        setCurrentStage('anamnesis');
+        setError(null);
+        chatRef.current = null;
         setCurrentView(view);
     };
 
-    const startSimulation = useCallback(async () => {
+    const startAnamnesis = useCallback(async () => {
         if (!ai || !selectedCase || (!userProfile && !isGuest)) return;
         
-        const profileForSim = userProfile ?? { firstName: 'Guest', lastName: 'User', gender: 'male', avatarId: 'Avatar1' };
+        const profileForSim = userProfile ?? { firstName: 'Guest', email: 'guest@example.com', lastName: 'User', gender: 'male', avatarId: 'Avatar1' };
 
         setIsLoading(true);
         setError(null);
@@ -133,6 +218,38 @@ const App: React.FC = () => {
             setIsLoading(false);
         }
     }, [ai, selectedCase, userProfile, isGuest]);
+
+    const startPresentation = useCallback(async (report: string) => {
+        if (!ai || !selectedCase || (!userProfile && !isGuest)) return;
+
+        const profileForSim = userProfile ?? { firstName: 'Guest', email: 'guest@example.com', lastName: 'User', gender: 'male', avatarId: 'Avatar1' };
+        
+        setIsLoading(true);
+        setError(null);
+        setChatHistory([]); // Clear chat for the new stage
+
+        try {
+            // Re-initialize chat with the new "senior doctor" persona
+            const chat = ai.chats.create({
+                model: 'gemini-3-flash-preview',
+                config: {
+                    systemInstruction: createPresentationSystemInstruction(selectedCase, profileForSim, report),
+                },
+            });
+            chatRef.current = chat;
+            
+            // The AI starts the conversation in this stage
+            const response = await chat.sendMessage({ message: "Başla" }); // Send a trigger message to get the intro
+            const initialMessage: ChatMessage = { role: 'model', content: response.text ?? 'Lütfen vakayı sunun.' };
+            setChatHistory([initialMessage]);
+
+        } catch (e: any) {
+            setError(`Sunum aşaması başlatılamadı: ${e.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [ai, selectedCase, userProfile, isGuest]);
+
 
     const sendMessage = useCallback(async (message: string) => {
         if (!chatRef.current || isLoading || isEvaluating) return;
@@ -164,7 +281,21 @@ const App: React.FC = () => {
         }
     }, [chatRef, isLoading, isEvaluating]);
     
-    const endSimulation = useCallback(async () => {
+    // --- Stage Transition Handlers ---
+    const handleFinishAnamnesis = () => {
+        setAnamnesisHistory(chatHistory);
+        setChatHistory([]);
+        chatRef.current = null; // AI is passive in next stage
+        setCurrentStage('documentation');
+    };
+    
+    const handleFinishDocumentation = (report: string) => {
+        setArztbriefText(report);
+        setCurrentStage('presentation');
+        startPresentation(report);
+    };
+
+    const handleFinishExam = useCallback(async () => {
         if (isLoading || isEvaluating) return;
 
         if (isGuest) {
@@ -172,38 +303,51 @@ const App: React.FC = () => {
             return;
         }
 
-        if (!isPremium) {
+        if (!isPremium && selectedCase.id > 10) {
             setIsPremiumModalOpen(true);
             return;
         }
-
-        if (!chatRef.current) return;
-
+        
         setIsEvaluating(true);
         setError(null);
         setEvaluationResult('');
         setIsEvaluationModalOpen(true);
         
         try {
-            const response = await chatRef.current.sendMessage({ message: "Simülasyon Bitti" });
+             if (!ai) throw new Error("AI client not initialized.");
+            
+            const anamnesisString = anamnesisHistory.map(m => `${m.role === 'user' ? 'Doctor' : 'Patient'}: ${m.content}`).join('\n');
+            const presentationString = chatHistory.map(m => `${m.role === 'user' ? 'Candidate' : 'Examiner'}: ${m.content}`).join('\n');
+            
+            const evaluationPrompt = isPremium 
+                ? createPremiumEvaluationPrompt(anamnesisString, arztbriefText, presentationString) 
+                : createFreeEvaluationPrompt();
+            
+            const response = await ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: evaluationPrompt,
+            });
+
             const report = response.text ?? 'Değerlendirme oluşturulamadı.';
             setEvaluationResult(report);
 
-            const scoreMatch = report.match(/\*\*Puan:\*\*\s*(\d+)\/100/);
-            const score = scoreMatch ? parseInt(scoreMatch[1], 10) : null;
+            if (isPremium) {
+                const scoreMatch = report.match(/\*\*Puan:\*\*\s*(\d+)\/100/);
+                const score = scoreMatch ? parseInt(scoreMatch[1], 10) : null;
 
-            const newRecord: EvaluationRecord = {
-                id: Date.now(),
-                date: new Date().toISOString(),
-                patientName: selectedCase.name,
-                score,
-                report,
-            };
-            setEvaluationHistory(prev => {
-                const updatedHistory = [...prev, newRecord];
-                localStorage.setItem('fspSimulatorHistory', JSON.stringify(updatedHistory));
-                return updatedHistory;
-            });
+                const newRecord: EvaluationRecord = {
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    patientName: selectedCase.name,
+                    score,
+                    report,
+                };
+                setEvaluationHistory(prev => {
+                    const updatedHistory = [...prev, newRecord];
+                    localStorage.setItem('fspSimulatorHistory', JSON.stringify(updatedHistory));
+                    return updatedHistory;
+                });
+            }
 
         } catch (e: any) {
             setError(`Değerlendirme alınamadı: ${e.message}`);
@@ -211,21 +355,20 @@ const App: React.FC = () => {
         } finally {
             setIsEvaluating(false);
         }
-    }, [chatRef, isLoading, isEvaluating, selectedCase.name, isGuest, isPremium]);
+    }, [ai, isLoading, isEvaluating, selectedCase.id, selectedCase.name, isGuest, isPremium, anamnesisHistory, arztbriefText, chatHistory]);
 
-    const generateArztbrief = useCallback(async (notes: string) => {
-        if (isGuest) {
-            setIsLoginRequiredModalOpen(true);
-            return;
-        }
-        await sendMessage(`Aşağıdaki notları kullanarak bir Arztbrief oluştur: ${notes}`);
-    }, [sendMessage, isGuest]);
 
+    // This effect handles both starting a new simulation when the view is entered,
+    // and restarting the simulation when the selected case is changed.
     useEffect(() => {
-        if (currentView === 'simulation' && (userProfile || isGuest) && chatHistory.length === 0) {
-            startSimulation();
+        if (currentView === 'simulation' && (userProfile || isGuest)) {
+             // When case changes, reset everything and start from anamnesis
+            setCurrentStage('anamnesis');
+            setAnamnesisHistory([]);
+            setArztbriefText('');
+            startAnamnesis();
         }
-    }, [currentView, startSimulation, userProfile, isGuest, chatHistory.length]);
+    }, [currentView, startAnamnesis, userProfile, isGuest]);
     
     if (!apiKey) {
         return <div className="bg-gray-900 text-white h-screen flex items-center justify-center">API Anahtarı bulunamadı. Lütfen .env dosyasını kontrol edin.</div>;
@@ -263,12 +406,15 @@ const App: React.FC = () => {
                     isEvaluating={isEvaluating}
                     error={error}
                     onSendMessage={sendMessage}
-                    onEndSimulation={endSimulation}
-                    onGenerateArztbrief={generateArztbrief}
+                    onFinishAnamnesis={handleFinishAnamnesis}
+                    onFinishDocumentation={handleFinishDocumentation}
+                    onFinishExam={handleFinishExam}
                     isPremium={isPremium}
                     isGuest={isGuest}
                     onLoginRequest={() => setIsLoginRequiredModalOpen(true)}
                     onUpgradeRequest={handleUpgradeRequest}
+                    currentStage={currentStage}
+                    anamnesisHistory={anamnesisHistory}
                 />;
                 break;
             case 'progress':
@@ -279,13 +425,15 @@ const App: React.FC = () => {
                 break;
             case 'study':
                 viewContent = <StudyView
-                    terms={TERMINOLOGY_LIST}
+                    terms={terminologyList}
                     isPremium={isPremium}
                     selectedCategory={selectedFlashcardCategory}
                     onCategoryChange={setSelectedFlashcardCategory}
                     isGuest={isGuest}
                     onLoginRequest={() => setIsLoginRequiredModalOpen(true)}
                     onUpgradeRequest={handleUpgradeRequest}
+                    onGenerateNewCards={handleGenerateNewCards}
+                    isGeneratingCards={isGeneratingCards}
                 />;
                 break;
             case 'dashboard':
@@ -351,12 +499,19 @@ const App: React.FC = () => {
                 isOpen={isEvaluationModalOpen}
                 onClose={() => setIsEvaluationModalOpen(false)}
                 evaluationResult={evaluationResult}
+                isPremium={isPremium}
+                onUpgrade={() => {
+                    setIsEvaluationModalOpen(false);
+                    handleUpgradeRequest();
+                }}
             />
             <PremiumModal
                 isOpen={isPremiumModalOpen}
                 onClose={() => setIsPremiumModalOpen(false)}
                 onConfirm={() => {
-                    console.log("Ödeme sayfasına gidiliyor");
+                    console.log("Redirecting to Lemon Squeezy checkout page...");
+                    // In a real app, you would redirect to the checkout URL here.
+                    // e.g., window.location.href = 'YOUR_LEMON_SQUEEZY_CHECKOUT_URL';
                     setIsPremiumModalOpen(false);
                 }}
             />

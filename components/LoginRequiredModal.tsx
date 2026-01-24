@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface LoginRequiredModalProps {
@@ -23,7 +22,7 @@ const LoginRequiredModal: React.FC<LoginRequiredModalProps> = ({ isOpen, onClose
                 onClick={(e) => e.stopPropagation()}
             >
                 <header className="flex justify-between items-center p-4 border-b border-gray-700">
-                    <h2 id="login-required-title" className="text-xl font-bold text-gray-100">Giriş Gerekli</h2>
+                    <h2 id="login-required-title" className="text-xl font-bold text-gray-100 tracking-tight">Giriş Gerekli</h2>
                     <button 
                         onClick={onClose} 
                         className="text-gray-400 hover:text-white transition-colors"

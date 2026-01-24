@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { UserProfile } from '../types';
 import * as Avatars from './avatars';
@@ -14,6 +13,7 @@ const avatarOptions = Object.keys(Avatars).map(key => ({ id: key, Component: Ava
 const ProfileCreationView: React.FC<ProfileCreationViewProps> = ({ onSaveProfile, initialProfile = null, onCancel }) => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [email, setEmail] = useState('');
     const [selectedAvatarId, setSelectedAvatarId] = useState<string | null>(null);
     const [gender, setGender] = useState<'male' | 'female' | ''>('');
     
@@ -23,18 +23,20 @@ const ProfileCreationView: React.FC<ProfileCreationViewProps> = ({ onSaveProfile
         if (initialProfile) {
             setFirstName(initialProfile.firstName || '');
             setLastName(initialProfile.lastName || '');
+            setEmail(initialProfile.email || '');
             setSelectedAvatarId(initialProfile.avatarId || null);
             setGender(initialProfile.gender || '');
         }
     }, [initialProfile]);
 
-    const isFormValid = firstName.trim() !== '' && lastName.trim() !== '' && selectedAvatarId !== null && gender !== '';
+    const isFormValid = firstName.trim() !== '' && lastName.trim() !== '' && selectedAvatarId !== null && gender !== '' && email.trim() !== '';
 
     const handleSave = () => {
         if (isFormValid) {
             onSaveProfile({
                 firstName: firstName.trim(),
                 lastName: lastName.trim(),
+                email: email.trim(),
                 avatarId: selectedAvatarId!,
                 gender: gender as 'male' | 'female',
             });
@@ -45,7 +47,7 @@ const ProfileCreationView: React.FC<ProfileCreationViewProps> = ({ onSaveProfile
         <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
             <div className="w-full max-w-lg bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-white mb-2">{isEditing ? 'Profili Düzenle' : 'Profilinizi Tamamlayın'}</h1>
+                    <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">{isEditing ? 'Profili Düzenle' : 'Profilinizi Tamamlayın'}</h1>
                     <p className="text-gray-400">Simülasyon deneyiminizi kişiselleştirin.</p>
                 </div>
 
@@ -70,6 +72,16 @@ const ProfileCreationView: React.FC<ProfileCreationViewProps> = ({ onSaveProfile
                             onChange={(e) => setLastName(e.target.value)}
                             className="w-full bg-gray-700 border border-gray-600 text-white rounded-md p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Örn: Yılmaz"
+                        />
+                    </div>
+                     <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            value={email}
+                            readOnly
+                            className="w-full bg-gray-900 border border-gray-700 text-gray-400 rounded-md p-3 cursor-not-allowed"
                         />
                     </div>
 

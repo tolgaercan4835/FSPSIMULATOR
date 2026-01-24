@@ -1,4 +1,3 @@
-
 import type { ChatMessage, Case, Term, UserProfile } from './types';
 
 export const TERMINOLOGY_LIST: Term[] = [
@@ -516,6 +515,30 @@ export const TERMINOLOGY_LIST: Term[] = [
     { id: 500, category: "Prosedürler", latin: "Ligatur", english: "Ligation", turkish: "Bağlama", german_medical: "Ligatur", german_common: "Unterbindung" }
 ];
 
+export const ARZTBRIEF_TEMPLATES = {
+    'Giriş (Einleitung)': [
+        { label: 'Standart Giriş', text: 'Wir berichten über den/die [Alter]-jährige/n Patienten/Patientin [Name], der/die sich am [Datum] aufgrund von [Symptom] in unserer Notaufnahme vorstellte.\n' },
+        { label: 'Acil Durum Girişi', text: 'Der/Die [Alter]-jährige/r Patient/in [Name] wurde am [Datum] mit dem Rettungsdienst bei Zustand nach [Ereignis] in unsere Notaufnahme eingeliefert.\n' }
+    ],
+    'Şikayet (Aktuelle Anamnese)': [
+        { label: 'Ağrı Açıklaması', text: 'Anamnestisch berichtete der/die Patient/in über seit [Zeitraum] bestehende [Schmerzart] Schmerzen im Bereich [Lokalisation] mit Ausstrahlung nach [Ausstrahlung]. Die Schmerzintensität wurde auf einer Skala von 1-10 mit [Wert] angegeben.\n' },
+        { label: 'Semptom Başlangıcı', text: 'Die Symptomatik habe [Zeitpunkt] begonnen und sich im Verlauf [Verlauf].\n' }
+    ],
+    'Özgeçmiş (Vorgeschichte)': [
+        { label: 'Önemli Hastalıklar', text: 'An Vorerkrankungen sind eine arterielle Hypertonie, Diabetes mellitus Typ 2 und eine Hypercholesterinämie bekannt.\n' },
+        { label: 'Ameliyatlar', text: 'Zustand nach Appendektomie im Jahr [Jahr].\n' }
+    ],
+    'Sosyal & Aile Anamnezi': [
+        { label: 'Alışkanlıklar', text: 'Der/Die Patient/in raucht seit [Jahre] Jahren ca. [Anzahl] Zigaretten pro Tag und trinkt Alkohol [Häufigkeit].\n' },
+        { label: 'Aile Öyküsü', text: 'In der Familienanamnese findet sich ein Myokardinfarkt beim Vater im Alter von [Alter] Jahren.\n' }
+    ],
+    'Vejetatif Anamnez': [
+        { label: 'Standart Negatif', text: 'Die vegetative Anamnese ist unauffällig. Appetit und Durst seien normal, der Schlaf sei ungestört. Es bestünden keine Miktions- oder Defäkationsprobleme.\n' },
+        { label: 'Bulantı/Kusma', text: 'Der/Die Patient/in klagte über Nausea, Emesis wurde verneint.\n' }
+    ]
+};
+
+
 const terminologyString = TERMINOLOGY_LIST.map(term => `${term.latin} -> ${term.german_common}`).join('\n');
 
 export const createSystemInstruction = (patient: Case, userProfile: UserProfile): string => {
@@ -523,8 +546,11 @@ export const createSystemInstruction = (patient: Case, userProfile: UserProfile)
 
     return `Sen FSP (Fachspracheprüfung) sınavına hazırlanan doktorlar için bir simulatörsün. Şu anki doktorun adı Dr. ${userProfile.lastName}.
 
-GÖREVLERİN:
-1. Modül A (Hasta Rolü): Aşağıdaki 'Vaka Dosyası'na ve 'Karakter Kuralları'na bakarak hasta rolü yap. Kullanıcı (Dr. ${userProfile.lastName}) sana Almanca sorular soracak. Ona "${title} ${userProfile.lastName}" olarak hitap et.
+ŞU ANKİ AŞAMA: 1. AŞAMA - ANAMNEZ.
+
+GÖREVİN: Sadece hasta rolü yapmak.
+
+Aşağıdaki 'Vaka Dosyası'na ve 'Karakter Kuralları'na bakarak hasta rolü yap. Kullanıcı (Dr. ${userProfile.lastName}) sana Almanca sorular soracak. Ona "${title} ${userProfile.lastName}" olarak hitap et.
 
 ---
 [VAKA DOSYASI: ${patient.name.toUpperCase()}]
@@ -538,10 +564,34 @@ Tanı: ${patient.diagnosis} (Bu bilgiyi doktora asla doğrudan söyleme!)
 - Duygu ve Kusurlar: Konuşurken duraksamalar (...) yap, ağrın varsa "Aua!", "Uff..." gibi nidalar kullan. Endişeni ve tereddütünü belli et. Bazen doktorun sorusunu tam anlamayıp 'Wie bitte?' veya 'Können Sie das wiederholen?' diye sor.
 - Hasta Dili (Patientensprache): Asla tıbbi terim kullanma. 'Appendizitis' deme, 'eine Entzündung vom Blinddarm' de. 'Abdomen' deme, 'Bauch' de.
 - Kısa Cevaplar: Her zaman uzun ve detaylı anlatma. Bazen sadece 'Ja', 'Nein' veya 'Ich weiß nicht' gibi kısa cevaplar ver. Unutkan olabilirsin.
+---`;
+}
+
+export const createPresentationSystemInstruction = (patient: Case, userProfile: UserProfile, arztbrief: string): string => {
+    const title = userProfile.gender === 'female' ? 'Frau Kollegin' : 'Herr Kollege';
+
+    return `Sen FSP (Fachspracheprüfung) sınavında bir "kıdemli doktor" (Oberarzt/Chefarzt) rolündesin. Karşındaki doktor adayı Dr. ${userProfile.lastName}.
+
+ŞU ANKİ AŞAMA: 3. AŞAMA - VAKA SUNUMU.
+
+GÖREVİN: Aday doktoru sorgulamak ve tıbbi bilgisini test etmek.
+
+Aday, sana ${patient.name} adlı hastayı sunacak. Hastanın tanısı: ${patient.diagnosis}. Adayın yazdığı rapor aşağıdadır. Bu rapora ve vaka bilgilerine dayanarak adaya zorlayıcı sorular sor.
+
+[ADAYIN YAZDIĞI RAPOR (ARZTBRIEF)]
+${arztbrief}
 ---
 
-2. Modül B (Hoca Rolü): Kullanıcı 'Simülasyon Bitti' dediğinde; onun dil hatalarını düzelt. Kullandığı yanlış kelimelerin yerine 'Terminoloji' listesindeki doğru tıbbi karşılıkları öner.
-3. Modül C (Mektup Yazarı): Kullanıcı sana aldığı notları verirse, 'Arztbrief Şablonu'na sadık kalarak resmi bir doktor mektubu oluştur.`;
+[KARAKTER KURALLARI]
+- Rol: Sen tecrübeli ve sorgulayıcı bir hocasın. Adaya "${title} ${userProfile.lastName}" olarak hitap et.
+- İlk Mesaj: Konuşmayı SEN başlat. İlk mesajın aynen şu olsun: "Guten Tag ${title} ${userProfile.lastName}. Ich habe Ihren Bericht über den Patienten ${patient.name} gelesen. Fassen Sie bitte den Fall kurz zusammen und stellen Sie den Patienten vor."
+- Sorgulama: Adayın sunumundan sonra, derine inen sorular sor. Örneğin:
+    - "Was ist Ihre Verdachtsdiagnose und warum?"
+    - "Welche Differentialdiagnosen kommen in Frage?"
+    - "Welche weiteren diagnostischen Schritte würden Sie einleiten?"
+    - "Wie sieht Ihr Behandlungsplan aus?"
+    - "Warum haben Sie sich für dieses Medikament entschieden?"
+- Etkileşim: Adayın cevaplarına göre yeni sorular türet. Bilgisini sına. Eğer aday hata yaparsa, "Sind Sie sich da sicher, ${title}?" gibi sorularla onu yönlendir.`;
 }
 
 export const createInitialMessage = (patient: Case, userProfile: UserProfile): ChatMessage => {
@@ -550,3 +600,47 @@ export const createInitialMessage = (patient: Case, userProfile: UserProfile): C
         content: patient.greeting
     };
 };
+
+export const createFreeEvaluationPrompt = (): string => {
+    return `Simülasyon Bitti. Lütfen sadece kısa ve yüzeysel bir özet ver. Detaylı gramer hatalarını veya tıbbi terim düzeltmelerini verme. Sadece genel gidişatın iyi mi kötü mü olduğunu söyle. Puanlama yapma. Mesajın en altına değiştirilmeden şu metni ekle: [Detaylı satır satır analiz ve puanlama için Premium'a geçin.]`;
+}
+
+export const createPremiumEvaluationPrompt = (anamnesis: string, arztbrief: string, presentation: string): string => {
+    return `Simülasyon Bitti. Lütfen FSP sınavının 3 aşamasını da değerlendiren, bir FSP hocası gibi, C1 seviyesinde, yapılandırılmış ve Markdown formatında çok detaylı bir analiz yap.
+
+İşte adayın performansı:
+---
+[1. AŞAMA: ANAMNEZ DİYALOĞU]
+${anamnesis}
+---
+[2. AŞAMA: YAZILAN ARZTBRIEF]
+${arztbrief}
+---
+[3. AŞAMA: VAKA SUNUMU DİYALOĞU]
+${presentation}
+---
+
+Değerlendirmen şu bölümleri içermeli:
+
+### 1. Genel Değerlendirme
+Üç aşamanın genel bir özeti. Adayın empati, yapı, profesyonellik ve tıbbi muhakeme yeteneği hakkında bir paragraf.
+
+### 2. Anamnez Değerlendirmesi (1. Aşama)
+- **İletişim Becerileri:** Hastayla iletişimi nasıldı? Empati gösterdi mi? Açık ve kapalı uçlu soruları doğru kullandı mı?
+- **Yapı:** Anamnez görüşmesi yapılandırılmış mıydı (z.B. Jetzige Anamnese, Vegetative Anamnese, etc.)?
+- **Eksik Sorular:** Teşhise ulaşmak için kritik olan ancak sormayı unuttuğu önemli soruları liste halinde belirt.
+- **⚠️ Kırmızı Bayrak Analizi (Red Flag):** Hastanın durumu için kritik olan (Örn: Alerjiler, aile öyküsü, düzenli ilaç kullanımı, ağrının yayılımı, travma öyküsü) ancak sorulmamış hayati soruları burada "⚠️ KIRMIZI BAYRAK: '[Konu]' hakkında soru sormayı unuttunuz!" şeklinde özellikle vurgula.
+
+### 3. Arztbrief Değerlendirmesi (2. Aşama)
+- **Format ve Yapı:** Rapor, resmi bir Arztbrief formatına uygun mu? Gerekli tüm başlıklar (Epikrise, Diagnose, Procedere vb.) var mı?
+- **İçerik:** Anamnezden aldığı bilgileri doğru ve eksiksiz bir şekilde rapora aktarabildi mi?
+- **Dilbilgisi ve İfade:** Belirgin gramer hatalarını ve daha profesyonel olabilecek ifadeleri düzeltilmiş halleriyle belirt.
+
+### 4. Vaka Sunumu Değerlendirmesi (3. Aşama)
+- **Tıbbi Argümantasyon:** Sorulan tıbbi sorulara verdiği yanıtların doğruluğu ve mantığı nasıldı?
+- **Terminoloji:** Fachsprache'yi doğru ve yerinde kullanabildi mi? Kullandığı yanlış terimler varsa düzelt.
+- **İkna Edicilik:** Kıdemli doktoru teşhis ve tedavi planı konusunda ikna edebildi mi?
+
+### 5. Puanlama
+- Son olarak, tüm bu kriterlere dayanarak 100 üzerinden bir puan ver ve bunu şu formatta yaz: **Puan:** XX/100`;
+}

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { UserProfile } from '../types';
 
@@ -31,7 +30,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartSimulation, onStudyTerms, 
         <div className="flex flex-col items-center justify-center p-6">
              <header className="text-center mb-12 w-full max-w-6xl pt-8">
                 <div className="flex items-center justify-center mb-4">
-                    <h1 className="text-4xl font-extrabold text-gray-100">Ana Panel</h1>
+                    <h1 className="text-4xl font-extrabold text-gray-100 tracking-tight">Ana Sayfa</h1>
                 </div>
                 <p className="text-lg text-gray-400 mt-2">FSP sınavına hazırlık için hepsi bir arada platformunuz.</p>
             </header>
