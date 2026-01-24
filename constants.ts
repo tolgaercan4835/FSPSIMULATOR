@@ -551,13 +551,15 @@ export const createSystemInstruction = (patient: Case, userProfile: UserProfile,
         examModeInstruction = "\n[SINAV MODU AKTİF]: Cevaplarını kısa ve net tut. Gereksiz detay verme. Sadece sorulan soruya cevap ver. Daha az duygusal ol.";
     }
 
+    const salutationRule = `- KESİN KURAL: DOKTORA DOĞRU HİTAP: Doktorun cinsiyeti '${userProfile.gender}'. Bu yüzden ona SADECE ve HER ZAMAN "${title}" veya "${userSalutation}" olarak hitap etmelisin. Bu en önemli kuraldır; ASLA ihlal etme. Vaka tanımındaki veya önceki mesajlardaki hitap yanlış olsa bile sen doğru olanı kullan.`;
+
     return `Sen FSP (Fachspracheprüfung) sınavına hazırlanan doktorlar için bir simulatörsün. Şu anki doktorun adı ${doctorIdentifier}.
 
 ŞU ANKİ AŞAMA: 1. AŞAMA - ANAMNEZ.
 
 GÖREVİN: Sadece hasta rolü yapmak.
 
-Aşağıdaki 'Vaka Dosyası'na ve 'Karakter Kuralları'na bakarak hasta rolü yap. Kullanıcı (${doctorIdentifier}) sana Almanca sorular soracak. Ona "${userSalutation}" olarak hitap et.
+Aşağıdaki 'Vaka Dosyası'na ve 'Karakter Kuralları'na bakarak hasta rolü yap. Kullanıcı (${doctorIdentifier}) sana Almanca sorular soracak.
 ${examModeInstruction}
 ---
 [VAKA DOSYASI: ${patient.name.toUpperCase()}]
@@ -567,6 +569,7 @@ Hikaye: ${patient.history}
 Tanı: ${patient.diagnosis} (Bu bilgiyi doktora asla doğrudan söyleme!)
 
 [KARAKTER KURALLARI]
+${salutationRule}
 - İnsancıl Tepkiler: Asla bir robot veya ansiklopedi gibi konuşma. Gerçek bir hasta gibi davran.
 - Duygu ve Kusurlar: Konuşurken duraksamalar (...) yap, ağrın varsa "Aua!", "Uff..." gibi nidalar kullan. Endişeni ve tereddütünü belli et. Bazen doktorun sorusunu tam anlamayıp 'Wie bitte?' veya 'Können Sie das wiederholen?' diye sor.
 - Hasta Dili (Patientensprache): Asla tıbbi terim kullanma. 'Appendizitis' deme, 'eine Entzündung vom Blinddarm' de. 'Abdomen' deme, 'Bauch' de.
@@ -604,9 +607,12 @@ ${arztbrief}
 }
 
 export const createInitialMessage = (patient: Case, userProfile: UserProfile): ChatMessage => {
+    const correctSalutation = userProfile.gender === 'female' ? 'Frau Doktor' : 'Herr Doktor';
+    const dynamicGreeting = patient.greeting.replace(/(Frau Doktor|Herr Doktor)/gi, correctSalutation);
+
     return {
         role: 'model',
-        content: patient.greeting
+        content: dynamicGreeting
     };
 };
 

@@ -5,7 +5,7 @@ import CaseFile from './CaseFile';
 import ChatInterface from './ChatInterface';
 import Message from './Message';
 import Timer from './Timer';
-import { ARZTBRIEF_TEMPLATES } from '../constants';
+import ArztbriefGenerator from './ArztbriefGenerator';
 import useTextToSpeech from '../hooks/useTextToSpeech';
 
 interface SimulationViewProps {
@@ -143,47 +143,13 @@ const SimulationView: React.FC<SimulationViewProps> = (props) => {
     const renderDocumentationStage = () => (
          <>
             <StageHeader stage="documentation" onTimeUp={handleTimeUp} isAutoReadEnabled={isAutoReadEnabled} onToggleAutoRead={() => setIsAutoReadEnabled(!isAutoReadEnabled)} simulationMode={props.simulationMode!} />
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-px bg-gray-700/50 overflow-hidden">
-                <div className="bg-gray-800/80 flex flex-col h-full">
-                    <h3 className="p-3 bg-gray-900/50 text-md font-semibold text-gray-300 border-b border-gray-700">Referans: Anamnez Görüşmesi</h3>
-                    <div className="overflow-y-auto p-4 space-y-4 flex-1">
-                        {props.anamnesisHistory.map((msg, index) => (
-                            <Message key={index} role={msg.role} content={msg.content} simulationMode={props.simulationMode!} />
-                        ))}
-                    </div>
-                </div>
-                <div className="bg-gray-800/80 flex flex-col h-full">
-                     <div className="p-3 bg-gray-900/50 flex justify-between items-center text-md font-semibold text-gray-300 border-b border-gray-700">
-                        <h3>Arztbrief Taslağı</h3>
-                        {props.simulationMode === 'training' && (
-                             <select onChange={(e) => setArztbriefText(prev => prev + e.target.value)} className="bg-gray-700 text-xs rounded p-1 border border-gray-600 focus:ring-sky-500">
-                                <option value="">Şablon Ekle...</option>
-                                {Object.entries(ARZTBRIEF_TEMPLATES).map(([category, templates]) => (
-                                    <optgroup label={category} key={category}>
-                                        {templates.map(template => (
-                                            <option key={template.label} value={template.text}>{template.label}</option>
-                                        ))}
-                                    </optgroup>
-                                ))}
-                            </select>
-                        )}
-                    </div>
-                    <textarea
-                        value={arztbriefText}
-                        onChange={(e) => setArztbriefText(e.target.value)}
-                        placeholder="Hastanın bilgilerini, şikayetlerini, bulguları ve tedavi planını buraya yazın..."
-                        className="w-full flex-1 p-4 bg-transparent text-gray-200 border-none focus:ring-2 focus:ring-inset focus:ring-sky-500 resize-none text-base"
-                    />
-                </div>
-            </div>
-            <div className="p-3 bg-gray-900/50 border-t border-gray-700/50">
-                <button
-                    onClick={() => props.onFinishDocumentation(arztbriefText)}
-                    className="w-full bg-sky-600 text-white font-bold py-3 px-4 rounded-md hover:bg-sky-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-                >
-                    Raporu Tamamla ve Sunuma Geç
-                </button>
-            </div>
+            <ArztbriefGenerator
+                anamnesisHistory={props.anamnesisHistory}
+                arztbriefText={arztbriefText}
+                onArztbriefChange={setArztbriefText}
+                onFinishDocumentation={props.onFinishDocumentation}
+                simulationMode={props.simulationMode!}
+            />
         </>
     );
 
