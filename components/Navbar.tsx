@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import type { UserProfile } from '../types';
+import type { UserProfile, View } from '../types';
 import * as Avatars from './avatars';
 
 interface NavbarProps {
-    currentView: 'dashboard' | 'simulation' | 'progress' | 'study';
-    navigateTo: (view: 'dashboard' | 'simulation' | 'progress' | 'study') => void;
+    currentView: View;
+    navigateTo: (view: View) => void;
     userProfile: UserProfile | null;
     isGuest: boolean;
     onLogout?: () => void;
@@ -14,7 +14,7 @@ interface NavbarProps {
 
 const NavLink: React.FC<{
     label: string;
-    view: 'dashboard' | 'simulation' | 'progress' | 'study';
+    view: View;
     currentView: string;
     navigateTo: (view: any) => void;
     onClick?: () => void;
@@ -62,6 +62,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, navigateTo, userProfile, i
         { label: 'Simülasyon', view: 'simulation' },
         { label: 'Terminoloji', view: 'study' },
         { label: 'Gelişim', view: 'progress' },
+        { label: 'Kaynaklar', view: 'resources' },
     ] as const;
 
     return (

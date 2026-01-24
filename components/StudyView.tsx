@@ -70,9 +70,14 @@ const StudyView: React.FC<StudyViewProps> = ({ terms, isPremium, selectedCategor
     };
 
     return (
-        <div className="flex flex-col items-center p-6 w-full max-w-5xl mx-auto">
-            <div className="w-full mb-6">
-                <h2 className="text-lg font-semibold text-gray-300 mb-3">Kategori Seç:</h2>
+        <div className="flex flex-col items-center p-6 w-full max-w-5xl mx-auto bg-gradient-to-b from-gray-900 to-gray-950 min-h-screen">
+             <header className="text-center mb-12 w-full pt-8">
+                 <h1 className="text-4xl font-extrabold text-gray-100 tracking-tight">Terminoloji Kartları</h1>
+                 <p className="text-lg text-gray-400 mt-2">Fachsprache bilginizi interaktif kartlarla test edin.</p>
+            </header>
+
+            <div className="w-full mb-8 p-4 bg-gray-800/50 border border-gray-700 rounded-xl">
+                <h2 className="text-base font-semibold text-gray-300 mb-3">Kategori Seç:</h2>
                 <div className="flex flex-wrap gap-2">
                     {categories.map(category => {
                         const isPremiumCategory = !FREE_CATEGORIES.includes(category);
@@ -82,14 +87,14 @@ const StudyView: React.FC<StudyViewProps> = ({ terms, isPremium, selectedCategor
                             <button
                                 key={category}
                                 onClick={() => handleCategoryClick(category)}
-                                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${
+                                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 flex items-center gap-2 border ${
                                     selectedCategory === category
-                                        ? 'bg-blue-600 text-white shadow-md'
-                                        : 'bg-gray-700 text-gray-300'
+                                        ? 'bg-sky-600 text-white shadow-md border-sky-500'
+                                        : 'bg-gray-700 text-gray-300 border-gray-600'
                                 } ${
                                     isLocked 
                                     ? 'text-gray-500' 
-                                    : 'hover:bg-gray-600'
+                                    : 'hover:bg-gray-600 hover:border-gray-500'
                                 }`}
                             >
                                 {category}
@@ -103,7 +108,7 @@ const StudyView: React.FC<StudyViewProps> = ({ terms, isPremium, selectedCategor
             {filteredTerms.length > 0 ? (
                  <Flashcard terms={filteredTerms} />
             ) : (
-                <div className="flex flex-col items-center justify-center h-80 bg-gray-800 rounded-xl w-full max-w-lg">
+                <div className="flex flex-col items-center justify-center h-80 bg-gray-800/50 border border-gray-700 rounded-xl w-full max-w-lg">
                     <p className="text-gray-400">Bu kategoride kelime bulunamadı.</p>
                 </div>
             )}
@@ -112,7 +117,7 @@ const StudyView: React.FC<StudyViewProps> = ({ terms, isPremium, selectedCategor
                 <button
                     onClick={handleGenerateClick}
                     disabled={isGeneratingCards}
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-indigo-600 text-white text-lg font-bold rounded-lg shadow-lg disabled:bg-indigo-400 disabled:cursor-not-allowed hover:bg-indigo-700 transition-all focus:outline-none focus:ring-4 focus:ring-indigo-500/50"
+                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-lg font-bold rounded-lg shadow-lg shadow-indigo-500/30 disabled:bg-indigo-400 disabled:cursor-not-allowed hover:from-indigo-600 hover:to-purple-700 transition-all focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transform hover:-translate-y-0.5"
                 >
                     {isGeneratingCards ? (
                         <>

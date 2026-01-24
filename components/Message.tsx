@@ -1,7 +1,10 @@
-
 import React from 'react';
-import type { ChatMessage } from '../types';
+import type { ChatMessage, SimulationMode } from '../types';
 import { marked } from 'marked';
+
+interface MessageProps extends ChatMessage {
+    simulationMode: SimulationMode;
+}
 
 const UserIcon = () => (
     <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
@@ -15,7 +18,7 @@ const ModelIcon = () => (
     </div>
 );
 
-const Message: React.FC<ChatMessage> = ({ role, content }) => {
+const Message: React.FC<MessageProps> = ({ role, content, simulationMode }) => {
     const isUser = role === 'user';
     
     const createMarkup = (text: string) => {
@@ -23,10 +26,23 @@ const Message: React.FC<ChatMessage> = ({ role, content }) => {
         return { __html: rawMarkup };
     };
 
+    const handlePlayAudio = () => {
+        if ('speechSynthesis' in window && content) {
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(content);
+            utterance.lang = 'de-DE';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert('Üzgünüz, tarayıcınız sesli okumayı desteklemiyor.');
+        }
+    };
+
     if (isUser) {
         return (
             <div className="flex justify-end items-start gap-3">
-                <div className="bg-blue-600 text-white rounded-lg p-3 max-w-lg shadow">
+                <div className="bg-blue-600 text-white rounded-xl rounded-br-none p-4 max-w-lg shadow-md">
                     <p className="text-sm break-words">{content}</p>
                 </div>
                 <UserIcon />
@@ -35,13 +51,22 @@ const Message: React.FC<ChatMessage> = ({ role, content }) => {
     }
 
     return (
-        <div className="flex justify-start items-start gap-3">
+        <div className="flex justify-start items-start gap-3 group">
             <ModelIcon />
-            <div className="bg-gray-700 text-gray-200 rounded-lg p-3 max-w-lg shadow">
+            <div className="bg-gray-700 text-gray-200 rounded-xl rounded-bl-none p-4 max-w-lg shadow-md relative">
                 <div 
                     className="prose prose-sm max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-invert prose-headings:text-gray-100 prose-strong:text-gray-100"
                     dangerouslySetInnerHTML={createMarkup(content)} 
                 />
+                 {simulationMode === 'training' && (
+                    <button 
+                        onClick={handlePlayAudio} 
+                        className="absolute top-1 right-1 p-1.5 rounded-full bg-gray-800/50 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-600 hover:text-white"
+                        aria-label="Mesajı Oku"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    </button>
+                 )}
             </div>
         </div>
     );

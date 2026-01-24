@@ -9,11 +9,12 @@ import StudyView from './components/StudyView';
 import PremiumModal from './components/PremiumModal';
 import ProfileCreationView from './components/ProfileCreationView';
 import FeedbackModal from './components/FeedbackModal';
-import LoginView from './components/LoginView';
+import LandingPage from './components/LandingPage';
 import LoginRequiredModal from './components/LoginRequiredModal';
 import Navbar from './components/Navbar';
+import ResourcesView from './components/ResourcesView';
 import { supabase } from './lib/supabase';
-import type { ChatMessage, Case, EvaluationRecord, UserProfile, Term, Stage } from './types';
+import type { ChatMessage, Case, EvaluationRecord, UserProfile, Term, Stage, View, SimulationMode } from './types';
 import { createSystemInstruction, createInitialMessage, TERMINOLOGY_LIST, createPremiumEvaluationPrompt, createFreeEvaluationPrompt, createPresentationSystemInstruction } from './constants';
 import { cases } from './data/cases';
 
@@ -22,7 +23,7 @@ const App: React.FC = () => {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [isGuest, setIsGuest] = useState<boolean>(false);
     const [partialGoogleProfile, setPartialGoogleProfile] = useState<Partial<UserProfile> | null>(null);
-    const [currentView, setCurrentView] = useState<'dashboard' | 'simulation' | 'progress' | 'study'>('dashboard');
+    const [currentView, setCurrentView] = useState<View>('dashboard');
     const [isLoading, setIsLoading] = useState(false);
     const [isEvaluating, setIsEvaluating] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -31,7 +32,8 @@ const App: React.FC = () => {
     const [selectedCaseId, setSelectedCaseId] = useState<number>(cases[0].id);
     const [selectedFlashcardCategory, setSelectedFlashcardCategory] = useState<string>('Tümü');
     
-    // Simulation Stage Management
+    // Simulation Stage & Mode Management
+    const [simulationMode, setSimulationMode] = useState<SimulationMode | null>(null);
     const [currentStage, setCurrentStage] = useState<Stage>('anamnesis');
     const [anamnesisHistory, setAnamnesisHistory] = useState<ChatMessage[]>([]);
     const [arztbriefText, setArztbriefText] = useState<string>('');
@@ -123,13 +125,11 @@ const App: React.FC = () => {
             });
 
             const jsonString = response.text;
-            // The AI might return a string that is not a valid JSON array, so we need to be careful.
             const newCards: Omit<Term, 'id'>[] = JSON.parse(jsonString);
 
             if (Array.isArray(newCards)) {
                 const formattedNewCards: Term[] = newCards.map((card, index) => ({
                     ...card,
-                    // Start IDs from a higher number to avoid collision with existing static cards
                     id: terminologyList.length + index + 501, 
                 }));
                 setTerminologyList(prev => [...prev, ...formattedNewCards]);
@@ -182,18 +182,18 @@ const App: React.FC = () => {
         setCurrentView('dashboard');
     };
     
-    const navigateTo = (view: 'dashboard' | 'simulation' | 'progress' | 'study') => {
-        // Reset simulation state when navigating away or to a new simulation
+    const navigateTo = (view: View) => {
         setChatHistory([]);
         setAnamnesisHistory([]);
         setArztbriefText('');
         setCurrentStage('anamnesis');
         setError(null);
         chatRef.current = null;
+        setSimulationMode(null);
         setCurrentView(view);
     };
 
-    const startAnamnesis = useCallback(async () => {
+    const startAnamnesis = useCallback(async (mode: SimulationMode) => {
         if (!ai || !selectedCase || (!userProfile && !isGuest)) return;
         
         const profileForSim = userProfile ?? { firstName: 'Guest', email: 'guest@example.com', lastName: 'User', gender: 'male', avatarId: 'Avatar1' };
@@ -206,7 +206,7 @@ const App: React.FC = () => {
             const chat = ai.chats.create({
                 model: 'gemini-3-flash-preview',
                 config: {
-                    systemInstruction: createSystemInstruction(selectedCase, profileForSim),
+                    systemInstruction: createSystemInstruction(selectedCase, profileForSim, mode),
                 },
             });
             chatRef.current = chat;
@@ -219,6 +219,28 @@ const App: React.FC = () => {
         }
     }, [ai, selectedCase, userProfile, isGuest]);
 
+    const handleStartSimulation = useCallback((mode: SimulationMode) => {
+        if (userProfile || isGuest) {
+            setSimulationMode(mode);
+            setCurrentStage('anamnesis');
+            setAnamnesisHistory([]);
+            setArztbriefText('');
+            startAnamnesis(mode);
+        }
+    }, [userProfile, isGuest, startAnamnesis]);
+
+    useEffect(() => {
+        if (currentView === 'simulation') {
+            setSimulationMode(null);
+            setCurrentStage('anamnesis');
+            setChatHistory([]);
+            setAnamnesisHistory([]);
+            setArztbriefText('');
+            setError(null);
+            chatRef.current = null;
+        }
+    }, [currentView, selectedCaseId]);
+
     const startPresentation = useCallback(async (report: string) => {
         if (!ai || !selectedCase || (!userProfile && !isGuest)) return;
 
@@ -226,10 +248,9 @@ const App: React.FC = () => {
         
         setIsLoading(true);
         setError(null);
-        setChatHistory([]); // Clear chat for the new stage
+        setChatHistory([]);
 
         try {
-            // Re-initialize chat with the new "senior doctor" persona
             const chat = ai.chats.create({
                 model: 'gemini-3-flash-preview',
                 config: {
@@ -238,8 +259,7 @@ const App: React.FC = () => {
             });
             chatRef.current = chat;
             
-            // The AI starts the conversation in this stage
-            const response = await chat.sendMessage({ message: "Başla" }); // Send a trigger message to get the intro
+            const response = await chat.sendMessage({ message: "Başla" });
             const initialMessage: ChatMessage = { role: 'model', content: response.text ?? 'Lütfen vakayı sunun.' };
             setChatHistory([initialMessage]);
 
@@ -281,11 +301,10 @@ const App: React.FC = () => {
         }
     }, [chatRef, isLoading, isEvaluating]);
     
-    // --- Stage Transition Handlers ---
     const handleFinishAnamnesis = () => {
         setAnamnesisHistory(chatHistory);
         setChatHistory([]);
-        chatRef.current = null; // AI is passive in next stage
+        chatRef.current = null;
         setCurrentStage('documentation');
     };
     
@@ -357,18 +376,6 @@ const App: React.FC = () => {
         }
     }, [ai, isLoading, isEvaluating, selectedCase.id, selectedCase.name, isGuest, isPremium, anamnesisHistory, arztbriefText, chatHistory]);
 
-
-    // This effect handles both starting a new simulation when the view is entered,
-    // and restarting the simulation when the selected case is changed.
-    useEffect(() => {
-        if (currentView === 'simulation' && (userProfile || isGuest)) {
-             // When case changes, reset everything and start from anamnesis
-            setCurrentStage('anamnesis');
-            setAnamnesisHistory([]);
-            setArztbriefText('');
-            startAnamnesis();
-        }
-    }, [currentView, startAnamnesis, userProfile, isGuest]);
     
     if (!apiKey) {
         return <div className="bg-gray-900 text-white h-screen flex items-center justify-center">API Anahtarı bulunamadı. Lütfen .env dosyasını kontrol edin.</div>;
@@ -400,6 +407,7 @@ const App: React.FC = () => {
                 viewContent = <SimulationView
                     cases={cases}
                     selectedCase={selectedCase}
+                    selectedCaseId={selectedCaseId}
                     onCaseChange={(id) => setSelectedCaseId(id)}
                     chatHistory={chatHistory}
                     isLoading={isLoading}
@@ -415,6 +423,8 @@ const App: React.FC = () => {
                     onUpgradeRequest={handleUpgradeRequest}
                     currentStage={currentStage}
                     anamnesisHistory={anamnesisHistory}
+                    onStartSimulation={handleStartSimulation}
+                    simulationMode={simulationMode}
                 />;
                 break;
             case 'progress':
@@ -435,6 +445,9 @@ const App: React.FC = () => {
                     onGenerateNewCards={handleGenerateNewCards}
                     isGeneratingCards={isGeneratingCards}
                 />;
+                break;
+            case 'resources':
+                viewContent = <ResourcesView />;
                 break;
             case 'dashboard':
             default:
@@ -477,7 +490,7 @@ const App: React.FC = () => {
                     initialProfile={partialGoogleProfile}
                 />;
             }
-            return <LoginView onLoginSuccess={handleLoginSuccess} onEnterGuestMode={handleEnterGuestMode} />;
+            return <LandingPage onLoginSuccess={handleLoginSuccess} onEnterGuestMode={handleEnterGuestMode} />;
         }
         
         if (isEditingProfile && userProfile) {
@@ -510,8 +523,6 @@ const App: React.FC = () => {
                 onClose={() => setIsPremiumModalOpen(false)}
                 onConfirm={() => {
                     console.log("Redirecting to Lemon Squeezy checkout page...");
-                    // In a real app, you would redirect to the checkout URL here.
-                    // e.g., window.location.href = 'YOUR_LEMON_SQUEEZY_CHECKOUT_URL';
                     setIsPremiumModalOpen(false);
                 }}
             />

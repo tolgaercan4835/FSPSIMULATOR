@@ -1,4 +1,4 @@
-import type { ChatMessage, Case, Term, UserProfile } from './types';
+import type { ChatMessage, Case, Term, UserProfile, SimulationMode } from './types';
 
 export const TERMINOLOGY_LIST: Term[] = [
     // --- Semptomlar ve Bulgular (Symptome und Befunde) ---
@@ -541,8 +541,13 @@ export const ARZTBRIEF_TEMPLATES = {
 
 const terminologyString = TERMINOLOGY_LIST.map(term => `${term.latin} -> ${term.german_common}`).join('\n');
 
-export const createSystemInstruction = (patient: Case, userProfile: UserProfile): string => {
+export const createSystemInstruction = (patient: Case, userProfile: UserProfile, mode: SimulationMode): string => {
     const title = userProfile.gender === 'female' ? 'Frau Dr.' : 'Herr Dr.';
+
+    let examModeInstruction = '';
+    if (mode === 'exam') {
+        examModeInstruction = "\n[SINAV MODU AKTİF]: Cevaplarını kısa ve net tut. Gereksiz detay verme. Sadece sorulan soruya cevap ver. Daha az duygusal ol.";
+    }
 
     return `Sen FSP (Fachspracheprüfung) sınavına hazırlanan doktorlar için bir simulatörsün. Şu anki doktorun adı Dr. ${userProfile.lastName}.
 
@@ -551,7 +556,7 @@ export const createSystemInstruction = (patient: Case, userProfile: UserProfile)
 GÖREVİN: Sadece hasta rolü yapmak.
 
 Aşağıdaki 'Vaka Dosyası'na ve 'Karakter Kuralları'na bakarak hasta rolü yap. Kullanıcı (Dr. ${userProfile.lastName}) sana Almanca sorular soracak. Ona "${title} ${userProfile.lastName}" olarak hitap et.
-
+${examModeInstruction}
 ---
 [VAKA DOSYASI: ${patient.name.toUpperCase()}]
 Ad Soyad: ${patient.name} | Yaş: ${patient.age}

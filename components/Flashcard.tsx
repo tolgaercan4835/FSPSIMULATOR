@@ -40,7 +40,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ terms }) => {
     const cardContent = (
         <>
             {/* Front Card */}
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-xl shadow-lg flex flex-col justify-between p-6 backface-hidden">
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-xl shadow-xl flex flex-col justify-between p-6 backface-hidden border border-gray-600">
                 <div>
                     <div className="text-sm text-gray-300 font-semibold uppercase tracking-wider">{currentTerm.category}</div>
                     <div className="font-bold text-5xl text-white mt-2 break-words">{currentTerm.latin}</div>
@@ -53,14 +53,12 @@ const Flashcard: React.FC<FlashcardProps> = ({ terms }) => {
             </div>
 
             {/* Back Card */}
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-xl shadow-lg flex flex-col justify-center items-center p-6 backface-hidden rotate-y-180">
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-sky-600 to-blue-700 text-white rounded-xl shadow-xl flex flex-col justify-center items-center p-6 backface-hidden rotate-y-180 border border-sky-500">
                  <div className="text-center">
-                    <div className="text-sm text-blue-200 font-semibold uppercase tracking-wider">Patientensprache</div>
-                    {/* FIX: Property 'german_patient' does not exist on type 'Term'. Use 'german_common' instead. */}
+                    <div className="text-sm text-sky-200 font-semibold uppercase tracking-wider">Patientensprache</div>
                     <div className="font-bold text-5xl text-white mt-1 break-words">{currentTerm.german_common}</div>
-                     {/* FIX: Property 'german_description' does not exist on type 'Term'. Use 'german_medical' and only show it if it's different from the common term. */}
                      {currentTerm.german_medical && currentTerm.german_medical !== currentTerm.german_common && (
-                        <p className="mt-4 text-blue-100 italic">(Fachsprache: {currentTerm.german_medical})</p>
+                        <p className="mt-4 text-sky-100 italic">(Fachsprache: {currentTerm.german_medical})</p>
                     )}
                 </div>
             </div>
@@ -68,7 +66,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ terms }) => {
     );
 
     return (
-        <div className="bg-gray-900 rounded-2xl w-full max-w-lg flex flex-col text-white">
+        <div className="w-full max-w-lg flex flex-col text-white transform transition-transform duration-300 hover:-translate-y-1">
             <div 
                 className="w-full h-80 cursor-pointer perspective-1000"
                 onClick={() => setIsFlipped(!isFlipped)}
@@ -85,7 +83,7 @@ const Flashcard: React.FC<FlashcardProps> = ({ terms }) => {
                 <button 
                     onClick={handleNext} 
                     disabled={currentIndex === shuffledTerms.length - 1}
-                    className="w-full px-6 py-4 bg-blue-600 text-white text-lg font-bold rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/50"
+                    className="w-full px-6 py-4 bg-sky-600 text-white text-lg font-bold rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-sky-700 transition-all focus:outline-none focus:ring-4 focus:ring-sky-500/50"
                 >
                     Sıradaki Kart &rarr;
                 </button>

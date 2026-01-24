@@ -41,3 +41,7 @@ export interface UserProfile {
 }
 
 export type Stage = 'anamnesis' | 'documentation' | 'presentation';
+
+export type View = 'dashboard' | 'simulation' | 'progress' | 'study' | 'resources';
+
+export type SimulationMode = 'training' | 'exam';
