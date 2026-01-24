@@ -167,8 +167,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginSuccess, onEnterGuestM
                         <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-start gap-4">
                             <span className="text-3xl mt-1">📉</span>
                              <div>
-                                <h3 className="text-xl font-bold text-sky-400 mb-2">Ekonomik ve Ömür Boyu Erişim</h3>
-                                <p className="text-gray-400">Aylık 89€'luk kurslar yerine, tek seferlik <strong>399₺</strong> ödeyin ve tüm güncellemelere ömür boyu sahip olun.</p>
+                                <h3 className="text-xl font-bold text-sky-400 mb-2">Ekonomik ve Kapsamlı Erişim</h3>
+                                <p className="text-gray-400">Aylık 89€'luk kurslar yerine, sadece <strong>499₺</strong> ödeyerek 3 ay boyunca sınırsız pratik yapın.</p>
                             </div>
                         </div>
                          <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-start gap-4">
@@ -184,21 +184,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginSuccess, onEnterGuestM
 
             <section className="py-20 bg-gray-800/50">
                 <div className="container mx-auto px-6 text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Tüm Özelliklere Ömür Boyu Erişin</h2>
-                    <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-12">Tek seferlik ödeme ile tüm vakalara, özelliklere ve gelecekteki güncellemelere sahip olun.</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Tüm Özelliklere 3 Ay Boyunca Erişin</h2>
+                    <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-12">3 aylık abonelik ile tüm vakalara, özelliklere ve bu süreçteki güncellemelere sahip olun.</p>
                     <div className="flex justify-center">
                          <div className="bg-gray-800 rounded-2xl shadow-2xl p-8 border-2 border-sky-500 w-full max-w-md transform transition-transform hover:scale-105">
-                            <h3 className="text-2xl font-bold text-yellow-400">Lansmana Özel Fiyat</h3>
-                            <p className="text-gray-400 mt-2">Tek Seferlik Ödeme</p>
+                            <h3 className="text-2xl font-bold text-yellow-400">3 Aylık Premium Paket</h3>
+                            <p className="text-gray-400 mt-2">Sınırsız Erişim</p>
                             <div className="my-8">
-                                <span className="text-5xl font-extrabold text-white">399 ₺</span>
-                                <span className="text-2xl text-gray-500 line-through ml-2">1.299 ₺</span>
+                                <span className="text-5xl font-extrabold text-white">499 ₺</span>
+                                <span className="text-2xl text-gray-400"> / 3 Ay</span>
                             </div>
                             <ul className="text-left space-y-3 text-gray-300 mb-8">
                                 <li className="flex items-center"><svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>90+ Vaka Simülasyonu</li>
                                 <li className="flex items-center"><svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>Sınav Modu & Puanlama</li>
                                 <li className="flex items-center"><svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>Tüm Terminoloji Kartları</li>
-                                <li className="flex items-center"><svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>Ömür Boyu Erişim ve Güncellemeler</li>
+                                <li className="flex items-center"><svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>3 Aylık Erişim ve Güncellemeler</li>
                             </ul>
                             <button onClick={() => login()} className="w-full bg-sky-600 text-white font-bold py-3 rounded-lg text-lg hover:bg-sky-500 transition-colors shadow-lg">
                                 Premium Erişimi Aç

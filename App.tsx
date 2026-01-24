@@ -13,6 +13,8 @@ import LandingPage from './components/LandingPage';
 import LoginRequiredModal from './components/LoginRequiredModal';
 import Navbar from './components/Navbar';
 import ResourcesView from './components/ResourcesView';
+import Footer from './components/Footer';
+import LegalView from './components/LegalView';
 import { supabase } from './lib/supabase';
 import type { ChatMessage, Case, EvaluationRecord, UserProfile, Term, Stage, View, SimulationMode } from './types';
 import { createSystemInstruction, createInitialMessage, TERMINOLOGY_LIST, createPremiumEvaluationPrompt, createFreeEvaluationPrompt, createPresentationSystemInstruction } from './constants';
@@ -184,13 +186,15 @@ const App: React.FC = () => {
     };
     
     const navigateTo = (view: View) => {
-        setChatHistory([]);
-        setAnamnesisHistory([]);
-        setArztbriefText('');
-        setCurrentStage('anamnesis');
-        setError(null);
-        setRetryableMessage(null);
-        setSimulationMode(null);
+        if (view !== 'simulation') {
+            setChatHistory([]);
+            setAnamnesisHistory([]);
+            setArztbriefText('');
+            setCurrentStage('anamnesis');
+            setError(null);
+            setRetryableMessage(null);
+            setSimulationMode(null);
+        }
         setCurrentView(view);
     };
 
@@ -455,6 +459,7 @@ const App: React.FC = () => {
                     simulationMode={simulationMode}
                     retryableMessage={retryableMessage}
                     onRetry={handleRetry}
+                    apiKey={apiKey}
                 />;
                 break;
             case 'progress':
@@ -479,6 +484,9 @@ const App: React.FC = () => {
             case 'resources':
                 viewContent = <ResourcesView />;
                 break;
+            case 'legal':
+                viewContent = <LegalView />;
+                break;
             case 'dashboard':
             default:
                 viewContent = <Dashboard
@@ -495,7 +503,7 @@ const App: React.FC = () => {
                 break;
         }
          return (
-             <div className="min-h-screen bg-gray-900">
+             <div className="min-h-screen bg-gray-900 flex flex-col">
                 <Navbar 
                     currentView={currentView}
                     navigateTo={navigateTo}
@@ -505,9 +513,10 @@ const App: React.FC = () => {
                     onLogin={handleLoginRequestFromNav}
                     onEditProfile={userProfile ? () => setIsEditingProfile(true) : undefined}
                 />
-                <main className="pt-16">
+                <main className="pt-16 flex-grow">
                     {viewContent}
                 </main>
+                <Footer navigateTo={navigateTo} />
             </div>
          );
     }

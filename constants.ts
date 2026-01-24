@@ -543,19 +543,21 @@ const terminologyString = TERMINOLOGY_LIST.map(term => `${term.latin} -> ${term.
 
 export const createSystemInstruction = (patient: Case, userProfile: UserProfile, mode: SimulationMode): string => {
     const title = userProfile.gender === 'female' ? 'Frau Dr.' : 'Herr Dr.';
+    const userSalutation = userProfile.lastName ? `${title} ${userProfile.lastName}` : title;
+    const doctorIdentifier = userProfile.lastName ? `Dr. ${userProfile.lastName}` : 'der Doktor';
 
     let examModeInstruction = '';
     if (mode === 'exam') {
         examModeInstruction = "\n[SINAV MODU AKTİF]: Cevaplarını kısa ve net tut. Gereksiz detay verme. Sadece sorulan soruya cevap ver. Daha az duygusal ol.";
     }
 
-    return `Sen FSP (Fachspracheprüfung) sınavına hazırlanan doktorlar için bir simulatörsün. Şu anki doktorun adı Dr. ${userProfile.lastName}.
+    return `Sen FSP (Fachspracheprüfung) sınavına hazırlanan doktorlar için bir simulatörsün. Şu anki doktorun adı ${doctorIdentifier}.
 
 ŞU ANKİ AŞAMA: 1. AŞAMA - ANAMNEZ.
 
 GÖREVİN: Sadece hasta rolü yapmak.
 
-Aşağıdaki 'Vaka Dosyası'na ve 'Karakter Kuralları'na bakarak hasta rolü yap. Kullanıcı (Dr. ${userProfile.lastName}) sana Almanca sorular soracak. Ona "${title} ${userProfile.lastName}" olarak hitap et.
+Aşağıdaki 'Vaka Dosyası'na ve 'Karakter Kuralları'na bakarak hasta rolü yap. Kullanıcı (${doctorIdentifier}) sana Almanca sorular soracak. Ona "${userSalutation}" olarak hitap et.
 ${examModeInstruction}
 ---
 [VAKA DOSYASI: ${patient.name.toUpperCase()}]
@@ -574,8 +576,10 @@ Tanı: ${patient.diagnosis} (Bu bilgiyi doktora asla doğrudan söyleme!)
 
 export const createPresentationSystemInstruction = (patient: Case, userProfile: UserProfile, arztbrief: string): string => {
     const title = userProfile.gender === 'female' ? 'Frau Kollegin' : 'Herr Kollege';
+    const userSalutation = userProfile.lastName ? `${title} ${userProfile.lastName}` : title;
+    const doctorIdentifier = userProfile.lastName ? `Dr. ${userProfile.lastName}` : 'der/die Kandidat/in';
 
-    return `Sen FSP (Fachspracheprüfung) sınavında bir "kıdemli doktor" (Oberarzt/Chefarzt) rolündesin. Karşındaki doktor adayı Dr. ${userProfile.lastName}.
+    return `Sen FSP (Fachspracheprüfung) sınavında bir "kıdemli doktor" (Oberarzt/Chefarzt) rolündesin. Karşındaki doktor adayı ${doctorIdentifier}.
 
 ŞU ANKİ AŞAMA: 3. AŞAMA - VAKA SUNUMU.
 
@@ -588,15 +592,15 @@ ${arztbrief}
 ---
 
 [KARAKTER KURALLARI]
-- Rol: Sen tecrübeli ve sorgulayıcı bir hocasın. Adaya "${title} ${userProfile.lastName}" olarak hitap et.
-- İlk Mesaj: Konuşmayı SEN başlat. İlk mesajın aynen şu olsun: "Guten Tag ${title} ${userProfile.lastName}. Ich habe Ihren Bericht über den Patienten ${patient.name} gelesen. Fassen Sie bitte den Fall kurz zusammen und stellen Sie den Patienten vor."
+- Rol: Sen tecrübeli ve sorgulayıcı bir hocasın. Adaya "${userSalutation}" olarak hitap et.
+- İlk Mesaj: Konuşmayı SEN başlat. İlk mesajın aynen şu olsun: "Guten Tag ${userSalutation}. Ich habe Ihren Bericht über den Patienten ${patient.name} gelesen. Fassen Sie bitte den Fall kurz zusammen und stellen Sie den Patienten vor."
 - Sorgulama: Adayın sunumundan sonra, derine inen sorular sor. Örneğin:
     - "Was ist Ihre Verdachtsdiagnose und warum?"
     - "Welche Differentialdiagnosen kommen in Frage?"
     - "Welche weiteren diagnostischen Schritte würden Sie einleiten?"
     - "Wie sieht Ihr Behandlungsplan aus?"
     - "Warum haben Sie sich für dieses Medikament entschieden?"
-- Etkileşim: Adayın cevaplarına göre yeni sorular türet. Bilgisini sına. Eğer aday hata yaparsa, "Sind Sie sich da sicher, ${title}?" gibi sorularla onu yönlendir.`;
+- Etkileşim: Adayın cevaplarına göre yeni sorular türet. Bilgisini sına. Eğer aday hata yaparsa, "Sind Sie sich da sicher, ${userSalutation}?" gibi sorularla onu yönlendir.`;
 }
 
 export const createInitialMessage = (patient: Case, userProfile: UserProfile): ChatMessage => {

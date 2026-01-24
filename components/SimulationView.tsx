@@ -6,6 +6,7 @@ import ChatInterface from './ChatInterface';
 import Message from './Message';
 import Timer from './Timer';
 import { ARZTBRIEF_TEMPLATES } from '../constants';
+import useTextToSpeech from '../hooks/useTextToSpeech';
 
 interface SimulationViewProps {
     cases: Case[];
@@ -30,6 +31,7 @@ interface SimulationViewProps {
     selectedCaseId: number;
     retryableMessage: string | null;
     onRetry: () => void;
+    apiKey: string;
 }
 
 const AudioSettings: React.FC<{ isEnabled: boolean, onToggle: () => void }> = ({ isEnabled, onToggle }) => (
@@ -84,21 +86,17 @@ const SimulationView: React.FC<SimulationViewProps> = (props) => {
     const [arztbriefText, setArztbriefText] = useState('');
     const [userInput, setUserInput] = useState('');
     const [isAutoReadEnabled, setIsAutoReadEnabled] = useState(false);
+    const { playAudio } = useTextToSpeech(props.apiKey);
+
 
     useEffect(() => {
         if (props.simulationMode === 'training' && isAutoReadEnabled && props.chatHistory.length > 0) {
             const lastMessage = props.chatHistory[props.chatHistory.length - 1];
             if (lastMessage.role === 'model' && lastMessage.content && !props.isLoading) {
-                 if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(lastMessage.content);
-                    utterance.lang = 'de-DE';
-                    utterance.rate = 0.9;
-                    window.speechSynthesis.speak(utterance);
-                }
+                 playAudio(lastMessage.content, props.selectedCase.gender);
             }
         }
-    }, [props.chatHistory, isAutoReadEnabled, props.isLoading, props.simulationMode]);
+    }, [props.chatHistory, isAutoReadEnabled, props.isLoading, props.simulationMode, playAudio, props.selectedCase.gender]);
 
 
     const handleTimeUp = () => {

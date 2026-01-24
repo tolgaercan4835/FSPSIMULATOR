@@ -7,6 +7,7 @@ export interface Case {
     id: number;
     name: string;
     age: number;
+    gender: 'male' | 'female';
     symptom: string;
     diagnosis: string;
     history: string;
@@ -42,6 +43,6 @@ export interface UserProfile {
 
 export type Stage = 'anamnesis' | 'documentation' | 'presentation';
 
-export type View = 'dashboard' | 'simulation' | 'progress' | 'study' | 'resources';
+export type View = 'dashboard' | 'simulation' | 'progress' | 'study' | 'resources' | 'legal';
 
 export type SimulationMode = 'training' | 'exam';

@@ -68,17 +68,16 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onConfirm 
                             <FeatureListItem isPremium>Tüm <strong>90+ Vaka Çalışması</strong></FeatureListItem>
                             <FeatureListItem isPremium><strong>Sınav Modu</strong> (Süre & Puanlama)</FeatureListItem>
                             <FeatureListItem isPremium>Sınırsız <strong>Kelime Kartları</strong></FeatureListItem>
-                            <FeatureListItem isPremium><strong>Ömür Boyu</strong> Erişim & Güncellemeler</FeatureListItem>
+                            <FeatureListItem isPremium><strong>3 Aylık</strong> Erişim & Güncellemeler</FeatureListItem>
                         </div>
                     </div>
                    
                     <div className="bg-gray-900/50 p-4 rounded-lg text-center my-6 border border-gray-700">
-                        <p className="font-semibold text-yellow-400">Lansmana Özel Fiyat</p>
+                        <p className="font-semibold text-yellow-400">3 Aylık Premium Paket</p>
                         <div className="my-2 flex items-baseline justify-center gap-2">
-                            <span className="text-4xl font-extrabold text-white">399 ₺</span>
-                            <span className="text-xl text-gray-500 line-through">1.299 ₺</span>
+                            <span className="text-4xl font-extrabold text-white">499 ₺</span>
                         </div>
-                        <p className="text-sm text-gray-400">Tek seferlik ödeme, ömür boyu erişim.</p>
+                        <p className="text-sm text-gray-400">3 ay boyunca sınırsız erişim.</p>
                     </div>
 
                     <button 
