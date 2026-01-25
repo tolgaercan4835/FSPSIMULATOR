@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ChatMessage, Stage, SimulationMode } from '../types';
+import type { Case, ChatMessage, Stage, SimulationMode } from '../types';
 import Message from './Message';
 import PendingMessage from './PendingMessage';
 
@@ -18,9 +18,11 @@ interface ChatInterfaceProps {
     simulationMode: SimulationMode;
     retryableMessage: string | null;
     onRetry: () => void;
+    playAudio: (text: string, gender: Case['gender']) => void;
+    patientGender: Case['gender'];
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEvaluating, error, onSendMessage, onEndSimulation, isGuest, isPremium, stage, userInput, setUserInput, simulationMode, retryableMessage, onRetry }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEvaluating, error, onSendMessage, onEndSimulation, isGuest, isPremium, stage, userInput, setUserInput, simulationMode, retryableMessage, onRetry, playAudio, patientGender }) => {
     const [pendingMessage, setPendingMessage] = React.useState<string | null>(null);
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
     const SEND_DELAY = 5000;
@@ -150,7 +152,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, isLoading, isEv
         <div className="flex flex-col h-full bg-gray-800">
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {messages.map((msg, index) => (
-                    <Message key={index} role={msg.role} content={msg.content} simulationMode={simulationMode} />
+                    <Message 
+                        key={index} 
+                        role={msg.role} 
+                        content={msg.content} 
+                        simulationMode={simulationMode}
+                        playAudio={playAudio}
+                        patientGender={patientGender}
+                    />
                 ))}
                 {pendingMessage && (
                     <PendingMessage 

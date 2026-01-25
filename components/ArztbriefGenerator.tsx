@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ChatMessage, SimulationMode } from '../types';
+import type { Case, ChatMessage, SimulationMode } from '../types';
 import Message from './Message';
 import { ARZTBRIEF_TEMPLATES } from '../constants';
 
@@ -9,6 +9,8 @@ interface ArztbriefGeneratorProps {
     onArztbriefChange: (text: string) => void;
     onFinishDocumentation: (report: string) => void;
     simulationMode: SimulationMode;
+    playAudio: (text: string, gender: Case['gender']) => void;
+    patientGender: Case['gender'];
 }
 
 const ArztbriefGenerator: React.FC<ArztbriefGeneratorProps> = ({
@@ -17,6 +19,8 @@ const ArztbriefGenerator: React.FC<ArztbriefGeneratorProps> = ({
     onArztbriefChange,
     onFinishDocumentation,
     simulationMode,
+    playAudio,
+    patientGender,
 }) => {
     return (
         <>
@@ -25,7 +29,14 @@ const ArztbriefGenerator: React.FC<ArztbriefGeneratorProps> = ({
                     <h3 className="p-3 bg-gray-900/50 text-md font-semibold text-gray-300 border-b border-gray-700">Referans: Anamnez Görüşmesi</h3>
                     <div className="overflow-y-auto p-4 space-y-4 flex-1">
                         {anamnesisHistory.map((msg, index) => (
-                            <Message key={index} role={msg.role} content={msg.content} simulationMode={simulationMode} />
+                            <Message 
+                                key={index} 
+                                role={msg.role} 
+                                content={msg.content} 
+                                simulationMode={simulationMode}
+                                playAudio={playAudio}
+                                patientGender={patientGender}
+                            />
                         ))}
                     </div>
                 </div>

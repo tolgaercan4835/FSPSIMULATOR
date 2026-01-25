@@ -136,6 +136,8 @@ const SimulationView: React.FC<SimulationViewProps> = (props) => {
                 simulationMode={props.simulationMode!}
                 retryableMessage={props.retryableMessage}
                 onRetry={props.onRetry}
+                playAudio={playAudio}
+                patientGender={props.selectedCase.gender}
             />
         </>
     );
@@ -149,6 +151,8 @@ const SimulationView: React.FC<SimulationViewProps> = (props) => {
                 onArztbriefChange={setArztbriefText}
                 onFinishDocumentation={props.onFinishDocumentation}
                 simulationMode={props.simulationMode!}
+                playAudio={playAudio}
+                patientGender={props.selectedCase.gender}
             />
         </>
     );
@@ -174,6 +178,8 @@ const SimulationView: React.FC<SimulationViewProps> = (props) => {
                 simulationMode={props.simulationMode!}
                 retryableMessage={props.retryableMessage}
                 onRetry={props.onRetry}
+                playAudio={playAudio}
+                patientGender={props.selectedCase.gender}
             />
         </>
     );

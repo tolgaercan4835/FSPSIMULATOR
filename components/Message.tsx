@@ -1,9 +1,11 @@
 import React from 'react';
-import type { ChatMessage, SimulationMode } from '../types';
+import type { Case, ChatMessage, SimulationMode } from '../types';
 import { marked } from 'marked';
 
 interface MessageProps extends ChatMessage {
     simulationMode: SimulationMode;
+    playAudio?: (text: string, gender: Case['gender']) => void;
+    patientGender?: Case['gender'];
 }
 
 const UserIcon = () => (
@@ -18,7 +20,7 @@ const ModelIcon = () => (
     </div>
 );
 
-const Message: React.FC<MessageProps> = ({ role, content, simulationMode }) => {
+const Message: React.FC<MessageProps> = ({ role, content, simulationMode, playAudio, patientGender }) => {
     const isUser = role === 'user';
     
     const createMarkup = (text: string) => {
@@ -27,15 +29,10 @@ const Message: React.FC<MessageProps> = ({ role, content, simulationMode }) => {
     };
 
     const handlePlayAudio = () => {
-        if ('speechSynthesis' in window && content) {
-            window.speechSynthesis.cancel();
-            
-            const utterance = new SpeechSynthesisUtterance(content);
-            utterance.lang = 'de-DE';
-            utterance.rate = 0.9;
-            window.speechSynthesis.speak(utterance);
+        if (playAudio && patientGender && content) {
+            playAudio(content, patientGender);
         } else {
-            alert('Üzgünüz, tarayıcınız sesli okumayı desteklemiyor.');
+            alert('Sesli okuma özelliği şu anda kullanılamıyor.');
         }
     };
 
