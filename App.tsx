@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { googleLogout } from '@react-oauth/google';
+import { Analytics } from "@vercel/analytics/react";
 import Dashboard from './components/Dashboard';
 import SimulationView from './components/SimulationView';
 import ProgressReport from './components/ProgressReport';
@@ -572,6 +573,7 @@ const App: React.FC = () => {
                 onClose={() => setIsLoginRequiredModalOpen(false)}
                 onLogin={handleLoginRequestFromModal}
             />
+            <Analytics />
         </>
     );
 };
