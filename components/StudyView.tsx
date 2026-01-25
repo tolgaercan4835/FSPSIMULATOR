@@ -138,6 +138,27 @@ const StudyView: React.FC<StudyViewProps> = ({ terms, isPremium, selectedCategor
                 </button>
                  {!isPremium && !isGuest && <p className="text-center text-xs text-gray-500 mt-2">Bu özellik Premium üyelere özeldir.</p>}
             </div>
+
+            <div className="w-full mt-16">
+                <header className="text-center mb-6">
+                    <h2 className="text-3xl font-bold text-sky-400">Sık Kullanılan İlaçlar</h2>
+                    <p className="text-md text-gray-400 mt-1">FSP sınavında sıkça karşılaşabileceğiniz gruplar ve örnekler.</p>
+                </header>
+                <div className="bg-gray-800/80 p-6 rounded-2xl shadow-xl border border-gray-700">
+                    <ul className="space-y-4 text-gray-300 columns-1 md:columns-2">
+                        <li className="break-inside-avoid mb-3"><strong>Analgetika:</strong> Ibuprofen, Paracetamol, Metamizol (Novalgin), Tilidin, Tramadol</li>
+                        <li className="break-inside-avoid mb-3"><strong>Antihypertensiva:</strong> Ramipril, Amlodipin, Metoprolol, Candesartan, Valsartan, Bisoprolol</li>
+                        <li className="break-inside-avoid mb-3"><strong>Antikoagulantien/Thrombozytenaggregationshemmer:</strong> ASS, Clopidogrel, Marcumar, Eliquis (Apixaban), Xarelto (Rivaroxaban)</li>
+                        <li className="break-inside-avoid mb-3"><strong>Protonenpumpeninhibitoren (PPI):</strong> Pantoprazol, Omeprazol, Esomeprazol</li>
+                        <li className="break-inside-avoid mb-3"><strong>Diuretika:</strong> HCT, Torasemid, Furosemid, Spironolacton</li>
+                        <li className="break-inside-avoid mb-3"><strong>Statine:</strong> Simvastatin, Atorvastatin, Rosuvastatin</li>
+                        <li className="break-inside-avoid mb-3"><strong>Antidiabetika:</strong> Metformin, Insulin (Lantus, NovoRapid), Gliclazid, Sitagliptin</li>
+                        <li className="break-inside-avoid mb-3"><strong>Antibiotika:</strong> Amoxicillin, Ciprofloxacin, Doxycyclin, Azithromycin, Cefuroxim</li>
+                        <li className="break-inside-avoid mb-3"><strong>Schilddrüsenhormone:</strong> L-Thyroxin, Thiamazol</li>
+                        <li className="break-inside-avoid mb-3"><strong>Inhalativa (Asthma/COPD):</strong> Salbutamol, Ipratropiumbromid, Budesonid, Fluticason</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     );
 };

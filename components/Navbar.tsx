@@ -62,7 +62,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentView, navigateTo, userProfile, i
         { label: 'Simülasyon', view: 'simulation' },
         { label: 'Terminoloji', view: 'study' },
         { label: 'Gelişim', view: 'progress' },
-        { label: 'Kaynaklar', view: 'resources' },
     ] as const;
 
     return (

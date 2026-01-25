@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { googleLogout } from '@react-oauth/google';
@@ -12,13 +13,13 @@ import FeedbackModal from './components/FeedbackModal';
 import LandingPage from './components/LandingPage';
 import LoginRequiredModal from './components/LoginRequiredModal';
 import Navbar from './components/Navbar';
-import ResourcesView from './components/ResourcesView';
-import Footer from './components/Footer';
 import LegalView from './components/LegalView';
 import { supabase } from './lib/supabase';
 import type { ChatMessage, Case, EvaluationRecord, UserProfile, Term, Stage, View, SimulationMode } from './types';
 import { createSystemInstruction, createInitialMessage, TERMINOLOGY_LIST, createPremiumEvaluationPrompt, createFreeEvaluationPrompt, createPresentationSystemInstruction } from './constants';
 import { cases } from './data/cases';
+// FIX: Import the Footer component.
+import Footer from './components/Footer';
 
 const App: React.FC = () => {
     const [apiKey] = useState(process.env.API_KEY || "");
@@ -480,9 +481,6 @@ const App: React.FC = () => {
                     onGenerateNewCards={handleGenerateNewCards}
                     isGeneratingCards={isGeneratingCards}
                 />;
-                break;
-            case 'resources':
-                viewContent = <ResourcesView />;
                 break;
             case 'legal':
                 viewContent = <LegalView />;
