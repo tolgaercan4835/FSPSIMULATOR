@@ -17,6 +17,7 @@
     "jwt-decode": "^4.0.0",
     "@supabase/supabase-js": "^2.45.0",
     "crypto": "^1.0.1"
+    "@vercel/analytics": "latest
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
@@ -24,4 +25,4 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
-"@vercel/analytics": "latest
+
