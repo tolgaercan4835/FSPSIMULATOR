@@ -1,25 +1,20 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+// The execution environment for this app does not read from a .env file.
+// Secrets like the Gemini API key are injected directly into process.env by the platform.
+// To ensure a reliable connection, we are hardcoding the public Supabase credentials here.
+// This is safe because the "anon key" is a publishable key, designed to be used in browsers.
+const supabaseUrl = "https://przxiyoudvjctogxwkhs.supabase.co";
+const supabaseAnonKey = "sb_publishable_WeNFNuSWCjPzPaJtcJMo4g_ASZFQ6b_";
+
+
 const initializeSupabase = (): SupabaseClient => {
-    let supabaseUrl: string | undefined;
-    let supabaseAnonKey: string | undefined;
-
-    // Safely access environment variables, preventing crashes if import.meta.env is not defined.
-    try {
-        if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
-            supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
-            supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
-        }
-    } catch (e) {
-        console.warn('Could not access import.meta.env. This is expected in some environments.');
-    }
-
     // If keys are present and valid, create and return the real client.
     if (supabaseUrl && supabaseAnonKey) {
         return createClient(supabaseUrl, supabaseAnonKey);
     }
 
-    // If keys are missing, log a warning and return a mock client.
+    // This block now serves as a fallback, but should not be reached with the hardcoded keys.
     console.warn('Supabase anahtarları eksik! Mock modu aktif.');
 
     // This mock query builder allows for chained calls like .select().eq().single()
