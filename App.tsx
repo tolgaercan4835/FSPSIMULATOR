@@ -20,6 +20,7 @@ import { createSystemInstruction, createInitialMessage, TERMINOLOGY_LIST, create
 import { cases } from './data/cases';
 // FIX: Import the Footer component.
 import Footer from './components/Footer';
+import { Analytics } from '@vercel/analytics/react';
 
 const App: React.FC = () => {
     const [apiKey] = useState(process.env.API_KEY || "");
@@ -545,6 +546,7 @@ const App: React.FC = () => {
     return (
         <>
             {renderAuthOrMain()}
+            <Analytics />
             <EvaluationModal
                 isOpen={isEvaluationModalOpen}
                 onClose={() => setIsEvaluationModalOpen(false)}
